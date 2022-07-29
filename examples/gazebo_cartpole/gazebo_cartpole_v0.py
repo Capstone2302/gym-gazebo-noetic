@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import gym
 from gym import wrappers
 import gym_gazebo
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     filename = dt_string + '.pkl'
     filename = "15-08-2019=16-28-09.pkl"
     if path.exists(filename):
-        qlearn.loadParams(filename)
+        #qlearn.loadParams(filename)
         print("**************Loading params from {}".format(filename))
     else:
         print("**************{} not found. Starting fresh.".format(filename))
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         # Update plot and save params every 100 episodes
         if x%100==0:
             plotter.plot(env)
-            qlearn.saveParams(filename)
+            # qlearn.saveParams(filename)
             print("Saving params to {}".format(filename))
 
         m, s = divmod(int(time.time() - start_time), 60)

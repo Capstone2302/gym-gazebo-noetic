@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import gym
 from gym import wrappers
 import gym_gazebo
