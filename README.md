@@ -1,6 +1,6 @@
 # ENPH 353 Reinforcement Learning ROS environment
 
-This environment is modification of [Erle Robot's gym-gazebo framework](https://github.com/erlerobot/gym-gazebo).
+This environment was derived from [Erle Robot's gym-gazebo framework](https://github.com/erlerobot/gym-gazebo).
 
 This package is an OpenAI gym extension for using Gazebo known as `gym-gazebo`
 
