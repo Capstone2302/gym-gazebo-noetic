@@ -1,4 +1,8 @@
-# An OpenAI gym extension for using Gazebo known as `gym-gazebo`
+# ENPH 353 Reinforcement Learning ROS environment
+
+This environment is modification of [Erle Robot's gym-gazebo framework](https://github.com/erlerobot/gym-gazebo).
+
+This package is an OpenAI gym extension for using Gazebo known as `gym-gazebo`
 
 **`gym-gazebo` is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo` appropriately requires relevant familiarity with these tools.**
 
