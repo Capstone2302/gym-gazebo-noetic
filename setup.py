@@ -9,7 +9,7 @@ setup(name='gym-gazebo',
       packages=find_packages(),
       install_requires=['gym>=0.2.3'],
       description='The OpenAI Gym for robotics: A toolkit for developing and comparing your reinforcement learning agents using Gazebo and ROS.',
-      url='https://github.com/erlerobot/gym',
+      url='https://github.com/enph353/enph353_gym-gazebo-noetic',
       author='Erle Robotics',
       package_data={'gym-gazebo': ['envs/assets/launch/*.launch', 'envs/assets/worlds/*']},
 )
