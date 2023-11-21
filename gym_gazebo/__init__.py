@@ -11,3 +11,9 @@ register(
     id='GazeboCartPole-v0',
     entry_point='gym_gazebo.envs.gazebo_cartpole:GazeboCartPolev0Env',
 )
+
+register(
+    id='GazeboWheel-v0',
+    entry_point='gym_gazebo.envs.gazebo_wheel:GazeboWheelv0Env',
+    # max_episode_steps=3000,
+)
