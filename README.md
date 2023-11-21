@@ -45,3 +45,4 @@ We recommend creating an alias to kill those processes.
 ```bash
 echo "alias killgazebogym='killall -9 rosout roslaunch rosmaster gzserver nodelet robot_state_publisher gzclient'" >> ~/.bashrc
 ```
+# gym-gazebo-noetic
