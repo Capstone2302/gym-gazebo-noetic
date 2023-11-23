@@ -12,7 +12,7 @@ from std_srvs.srv import Empty
 from datetime import datetime
 import message_filters
 from message_filters import ApproximateTimeSynchronizer, Subscriber
-from gazebo_msgs.msg import ModelState 
+from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState
 
 class CommandToJointState:
@@ -79,15 +79,15 @@ class CommandToJointState:
 
     def get_wheel_pos_callback(self, msg):
         msg_str = str(msg)
-        i = msg_str.find('velocity: [')+11
+        i = msg_str.find('position: [')+11
         msg_str = msg_str[i:]
         i = msg_str.find(']')
         self.wheel_pos_read = float(msg_str[0:i])
         
-        rospy.loginfo('wheel vel read: '+ str(self.wheel_pos_read))
-        self.wheel_pos_write = self.wheel_pos_read+1
-        self.joint_pub.publish(self.wheel_pos_write )
-        rospy.loginfo('vel published: '+ str(self.wheel_pos_write ))
+        rospy.loginfo('wheel pos read: '+ str(self.wheel_pos_read))
+        # self.wheel_pos_write = self.wheel_pos_read+1
+        # self.joint_pub.publish(self.wheel_pos_write)
+        # rospy.loginfo('position published: '+ str(self.wheel_pos_read+1))
 
     def get_ball_pos_callback(self, img_msg):
         try:
@@ -114,7 +114,7 @@ class CommandToJointState:
                 if self.ball_pos_y >450:
                     self.reset_ball_pos()
                 
-                # self.PID_control()
+                self.PID_control()
         # cv2.imshow("output", np.hstack([cv_image, output]))
         cv2.imshow("Image window", output)
         cv2.waitKey(1)

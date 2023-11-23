@@ -35,8 +35,4 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
     <remap from="/joint_states" to="/wheel/joint_states" />
   </node>
-
-  <!-- Comment out for no PID -->
-  <!-- <node name="listener_node" pkg="wheel_gazebo" type="PID_wheel_control.py" output="screen"/> -->
-
 </launch>
