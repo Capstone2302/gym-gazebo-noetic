@@ -98,9 +98,6 @@ if __name__ == '__main__':
             observation, reward, done, info = env.step(action)
             cumulated_reward += reward
 
-            if highest_reward < cumulated_reward:
-                highest_reward = cumulated_reward
-
             nextState = ''.join(map(str, observation))
 
             qlearn.learn(state, action, reward, nextState)
@@ -125,10 +122,13 @@ if __name__ == '__main__':
                 break
         print("Amount of state action pairs seen before: {}/{}".format(qlearn.num_times_seen_before, qlearn.num_times_learn))
 
+        if highest_reward < cumulated_reward:
+            highest_reward = cumulated_reward
+            qlearn.saveParams(filename)
+
         # Update plot and save params every 100 episodes
         if x%100==0:
             plotter.plot(env)
-            # qlearn.saveParams(filename)
             print("Saving params to {}".format(filename))
 
         m, s = divmod(int(time.time() - start_time), 60)

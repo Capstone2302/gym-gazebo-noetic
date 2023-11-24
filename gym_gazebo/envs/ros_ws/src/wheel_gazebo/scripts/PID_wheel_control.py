@@ -100,7 +100,7 @@ class CommandToJointState:
                                    param1=50,
                                    param2=30,
                                    minRadius=0,
-                                   maxRadius=12)
+                                   maxRadius=15)
         if circles is not None:
             circles = np.round(circles[0, :]).astype("int")
             for (x, y, r) in circles:
@@ -115,6 +115,8 @@ class CommandToJointState:
                     self.reset_ball_pos()
                 
                 self.PID_control()
+            if len(circles) == 0:
+                rospy.loginfo("ball missed")
         # cv2.imshow("output", np.hstack([cv_image, output]))
         cv2.imshow("Image window", output)
         cv2.waitKey(1)
