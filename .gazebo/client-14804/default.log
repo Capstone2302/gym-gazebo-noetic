@@ -1,0 +1,47 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1700365599 800053584) [Msg] Waiting for master.
+(1700365599 801218844) [Msg] Connected to gazebo master @ http://127.0.0.1:14804
+(1700365599 801236386) [Msg] Publicized address: 10.0.0.195
+(1700365599 801346661) Loaded .ini file from: "/home/mackenzie/.gazebo/gui.ini"
+(1700365601 49021422) No spacenav daemon found. Spacenav functionality is disabled
+(1700365601 69515030) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 69605279) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 69617518) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 69766534) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 69845608) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 69855419) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 69865627) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 69944215) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 70682154) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 70768631) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 70779127) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 70803590) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 70885985) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 70896049) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 70906114) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 70994456) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 80225026) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80343261) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80365294) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 80378972) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80497696) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80533515) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80630002) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80641607) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 80653292) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80749976) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl]
+(1700365601 80781644) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 80877624) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 80889580) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 80899813) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 80989542) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 81010482) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 81104146) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 81115573) [Err] [Visual.cc:3047] No mesh specified
+(1700365601 81126401) [Wrn] [SystemPaths.cc:460] File or path does not exist ["/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl"] [/home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]
+(1700365601 81223008) [Wrn] [SystemPaths.cc:460] File or path does not exist [""] [file:///home/mackenzie/enph353_gym-gazebo_noetic_sensei/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl]

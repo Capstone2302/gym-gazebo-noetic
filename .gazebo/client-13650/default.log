@@ -1,0 +1,11 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1700373529 168353730) [Msg] Waiting for master.
+(1700373529 174309985) [Msg] Connected to gazebo master @ http://127.0.0.1:13650
+(1700373529 174329290) [Msg] Publicized address: 10.0.0.195
+(1700373529 174487780) Loaded .ini file from: "/home/mackenzie/.gazebo/gui.ini"
+(1700373530 440167873) No spacenav daemon found. Spacenav functionality is disabled

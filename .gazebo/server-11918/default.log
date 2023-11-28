@@ -1,0 +1,12 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1700859466 832222195) [Msg] Waiting for master.
+(1700859466 833968299) [Msg] Connected to gazebo master @ http://127.0.0.1:11918
+(1700859466 833994583) [Msg] Publicized address: 10.43.28.44
+(1700859467 31322487) [Msg] Loading world file [/home/mackenzie/enph353_gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/worlds/wheel.world]
+(1700859467 90691296) Init world[default]
+(1700859468 36597927) applying Gaussian noise model with mean 0, stddev 0.007, bias 0

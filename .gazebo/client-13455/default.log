@@ -1,0 +1,12 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1699655619 925487999) [Msg] Waiting for master.
+(1699655619 927505029) [Msg] Connected to gazebo master @ http://127.0.0.1:13455
+(1699655619 927527224) [Msg] Publicized address: 10.0.0.195
+(1699655619 927655869) Loaded .ini file from: "/home/mackenzie/.gazebo/gui.ini"
+(1699655621 256848748) No spacenav daemon found. Spacenav functionality is disabled
+(1699656021 182292923) [Wrn] [Publisher.cc:135] Queue limit reached for topic /gazebo/default/user_camera/pose, deleting message. This warning is printed only once.

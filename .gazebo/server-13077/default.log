@@ -1,0 +1,12 @@
+Gazebo multi-robot simulator, version 11.13.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1699552043 310132729) [Msg] Waiting for master.
+(1699552043 311807770) [Msg] Connected to gazebo master @ http://127.0.0.1:13077
+(1699552043 311878948) [Msg] Publicized address: 10.43.48.132
+(1699552043 506582556) [Msg] Loading world file [/usr/share/gazebo-11/worlds/empty_bullet.world]
+(1699552043 570557572) Init world[default]
+(1699552043 980173806) ODESliderJoint::SetAnchor not implemented.

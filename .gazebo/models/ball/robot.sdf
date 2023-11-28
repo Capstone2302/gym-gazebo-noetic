@@ -1,0 +1,27 @@
+<sdf version="1.6">
+<model name="ball">
+<link name="part_1">
+<frame name="part_1_frame"><pose>0 0 0 0 -0 0</pose></frame>
+<visual name="part_1_0_part_1_visual">
+<pose>2.11419e-18 -4.33525e-18 2.47023e-18 -0.62391 -0.610176 -1.01567</pose>
+<geometry>
+<mesh><uri>part_1.stl</uri></mesh>
+</geometry>
+<material><ambient>0.615686 0.811765 0.929412 1</ambient><diffuse>0.615686 0.811765 0.929412 1</diffuse><specular>0.1 0.1 0.1 1</specular><emissive>0 0 0 0</emissive></material>
+</visual>
+<collision name="part_1_0_part_1_visual">
+<pose>2.11419e-18 -4.33525e-18 2.47023e-18 -0.62391 -0.610176 -1.01567</pose>
+<geometry>
+<mesh><uri>part_1.stl</uri></mesh>
+</geometry>
+</collision>
+<inertial>
+<pose frame="part_1_frame">1.19046e-18 -2.8458e-18 1.24482e-18 0 0 0</pose>
+<mass>0.0455096</mass>
+<inertia><ixx>1.17444e-05</ixx><ixy>-5.21111e-20</ixy><ixz>7.83477e-20</ixz><iyy>1.17444e-05</iyy><iyz>-5.28689e-20</iyz><izz>1.17444e-05</izz></inertia>
+</inertial>
+</link>
+
+
+</model>
+</sdf>

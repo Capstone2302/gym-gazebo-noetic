@@ -1,0 +1,15 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1700379369 957672825) [Msg] Waiting for master.
+(1700379369 967077081) [Msg] Connected to gazebo master @ http://127.0.0.1:13740
+(1700379369 967123486) [Msg] Publicized address: 10.0.0.195
+(1700379369 967415012) Loaded .ini file from: "/home/mackenzie/.gazebo/gui.ini"
+(1700379371 404138589) No spacenav daemon found. Spacenav functionality is disabled
+(1700379389 515185139) [Err] [Connection.hh:293] Header is empty
+(1700379389 515214414) [Err] [ConnectionManager.cc:478] Data was empty, try again
+(1700379389 515253229) [Err] [Connection.hh:293] Header is empty
+(1700379389 515271984) [Err] [ConnectionManager.cc:478] Data was empty, try again

@@ -1,0 +1,13 @@
+Gazebo multi-robot simulator, version 11.14.0
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+
+(1700447759 32330337) [Msg] Waiting for master.
+(1700447759 34824078) [Msg] Connected to gazebo master @ http://127.0.0.1:11806
+(1700447759 34838715) [Msg] Publicized address: 10.0.0.195
+(1700447759 431639452) [Msg] Loading world file [/home/mackenzie/enph353_gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/worlds/wheel.world]
+(1700447759 491244234) Init world[default]
+(1700447760 437711534) applying Gaussian noise model with mean 0, stddev 0.007, bias 0
+(1700447804 216704683) [Wrn] [Publisher.cc:135] Queue limit reached for topic /gazebo/default/pose/local/info, deleting message. This warning is printed only once.
