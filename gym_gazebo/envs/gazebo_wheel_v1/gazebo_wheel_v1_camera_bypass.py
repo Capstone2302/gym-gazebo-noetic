@@ -27,7 +27,7 @@ from gazebo_msgs.srv import SetModelState
 from sensor_msgs.msg import Image
 
 
-class GazeboWheelv0Env(gazebo_env.GazeboEnv):
+class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
         gazebo_env.GazeboEnv.__init__(self, "/home/mackenzie/enph353_gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
@@ -44,7 +44,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
         self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
-        self.ball_sub = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_callback)
+        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelState, self.get_ball_pos_callback)
 
         # Gazebo specific services to start/stop its behavior and
         # facilitate the overall RL environment
@@ -92,40 +92,9 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         # self.joint_pub.publish(self.wheel_pos_write)
         # print('position published: '+ str(self.wheel_pos+1))
 
-    def get_ball_pos_callback(self, img_msg):
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
-        except CvBridgeError as e:
-            print(e)
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-        output = cv_image.copy()
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2,20, 
-                                   param1=50,
-                                   param2=30,
-                                   minRadius=0,
-                                   maxRadius=15)
-        if circles is not None:
-            circles = np.round(circles[0, :]).astype("int")
-            for (x, y, r) in circles:
-                self.ball_pos_x = x - self.center_pixel #neg ball_pos means left of centre, pos = right of center
-                self.ball_pos_y = y
-                if abs(self.ball_pos_x) > self.x_threshold:
-                    cv2.circle(output, (x, y), r, (255, 0, 0), 4)                    
-                else:
-                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                # cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                # print(str(y))
-                # print('ball pos x read: '+ str(self.ball_pos_x))
-                # print('ball pos y read: '+ str(self.ball_pos_y))
-                # if self.ball_pos_y > 450:
-                #     self.reset_ball_pos()
-                
-                # self.PID_control()
-            if len(circles) == 0:
-                print("ball missed")
-        # cv2.imshow("output", np.hstack([cv_image, output]))
-        cv2.imshow("Image window", output)
-        cv2.waitKey(1)
+    def get_ball_pos_callback(self, msg):
+        self.ball_pos_x = msg.pose[1].position.x
+        self.ball_pos_y = msg.pose[1].position.y
         
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

@@ -17,3 +17,9 @@ register(
     entry_point='gym_gazebo.envs.gazebo_wheel:GazeboWheelv0Env',
     # max_episode_steps=3000,
 )
+
+register(
+    id='GazeboWheel-v1',
+    entry_point='gym_gazebo.envs.gazebo_wheel:GazeboWheelv1Env',
+    # max_episode_steps=3000,
+)
