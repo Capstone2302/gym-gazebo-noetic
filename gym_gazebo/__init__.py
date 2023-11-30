@@ -20,6 +20,6 @@ register(
 
 register(
     id='GazeboWheel-v1',
-    entry_point='gym_gazebo.envs.gazebo_wheel:GazeboWheelv1Env',
+    entry_point='gym_gazebo.envs.gazebo_wheel_v1:GazeboWheelv1Env',
     # max_episode_steps=3000,
 )

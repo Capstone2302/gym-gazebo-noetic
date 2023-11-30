@@ -23,6 +23,7 @@ from gazebo_msgs.msg import LinkState
 import message_filters
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from gazebo_msgs.msg import ModelState 
+from gazebo_msgs.msg import ModelStates
 from gazebo_msgs.srv import SetModelState
 from sensor_msgs.msg import Image
 
@@ -30,21 +31,21 @@ from sensor_msgs.msg import Image
 class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
-        gazebo_env.GazeboEnv.__init__(self, "/home/mackenzie/enph353_gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
+        gazebo_env.GazeboEnv.__init__(self, "/home/mackenzie/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 120 # when when x is farther than lsdkfj pixels from the center_pixel, reset
+        self.x_threshold = 0.2 # when when x is farther than lsdkfj pixels from the center_pixel, reset
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
-        self.n_actions = 7 #should be odd number 
+        self.n_actions = 3 #should be odd number 
         self.bridge = CvBridge()
 
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
         self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
-        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelState, self.get_ball_pos_callback)
+        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback)
 
         # Gazebo specific services to start/stop its behavior and
         # facilitate the overall RL environment
@@ -94,7 +95,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
     def get_ball_pos_callback(self, msg):
         self.ball_pos_x = msg.pose[1].position.x
-        self.ball_pos_y = msg.pose[1].position.y
+        self.ball_pos_y = msg.pose[1].position.z
         
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -141,8 +142,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.y_prev = self.ball_pos_y
 
         ball_vel = 0
-        if dt != 0:
-            ball_vel = round(dx/dt,2)
+        # if dt != 0:
+        ball_vel = round(dx/dt*10**5,2)
 
         wheel_vel = round(wheel_vel, 2)
         print('x_pos: '+ str(x_pos))
@@ -171,7 +172,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state = [x_pos, wheel_vel, ball_vel]
 
         # Check for end condition
-        done = (abs(self.ball_pos_x) > self.x_threshold) or (abs(self.wheel_vel) > self.vel_threshold) or (self.ball_pos_y > 500)
+        done = (abs(self.ball_pos_x) > self.x_threshold)
         # done = self.ball_pos_y > 500 
         done = bool(done)
         # print('isDone: '+ str((done)))
