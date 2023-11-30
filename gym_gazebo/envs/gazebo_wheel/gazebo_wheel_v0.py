@@ -37,6 +37,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         self.x_threshold = 120 # when when x is farther than lsdkfj pixels from the center_pixel, reset
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
+        self.vel_threshold = 30
         self.bridge = CvBridge()
 
         # Setup pub/sub for state/action
@@ -58,15 +59,19 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         # cartesian product, 3 Dimensions - ball_pos_x, ball_pos_y, wheel_pos degree
 
         #TODO add dimension for wheel position which is needed for non-circular wheels=
-        low  = np.array([-self.x_threshold])
-        high = np.array([ self.x_threshold])
-        self.observation_space = spaces.Box(low=low, high = high)
+        low  = np.array([-self.x_threshold, -self.vel_threshold])
+        high = np.array([ self.x_threshold, self.vel_threshold, np.finfo(np.float32).max])
+        self.observation_space = spaces.Box(low=-high, high = high)
 
         # State data:
         self.ball_pos_x = None
         self.ball_pos_y = 0
         self.wheel_pos = None
         self.wheel_vel = None
+        self.ball_vel = None
+        self.prev_time = -1
+        self.x_prev = 0
+        self.y_prev = 0
 
     def get_wheel_pos_callback(self, msg):
         # msg_str = str(msg)
@@ -101,11 +106,14 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         if circles is not None:
             circles = np.round(circles[0, :]).astype("int")
             for (x, y, r) in circles:
-                cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                # cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                # print(str(y))
                 self.ball_pos_x = x - self.center_pixel #neg ball_pos means left of centre, pos = right of center
                 self.ball_pos_y = y
+                if abs(self.ball_pos_x) > self.x_threshold:
+                    cv2.circle(output, (x, y), r, (255, 0, 0), 4)                    
+                else:
+                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                # cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                # print(str(y))
                 # print('ball pos x read: '+ str(self.ball_pos_x))
                 # print('ball pos y read: '+ str(self.ball_pos_y))
                 # if self.ball_pos_y > 450:
@@ -139,7 +147,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         while x_pos is None or wheel_vel is None:
             x_pos = self.ball_pos_x
             # wheel_pos = self.wheel_pos
-            wheel_vel = self.wheel_vel
+            wheel_vel = (self.wheel_vel)
             # if time.time() > timeout:
             #     self.reset_ball_pos()
         # diff = time.time()-diff
@@ -152,10 +160,26 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        print('ball pos x read: '+ str(self.ball_pos_x))
-        print('ball pos y read: '+ str(self.ball_pos_y))
+        t = rospy.get_rostime().nsecs/10**6
+        # print('Curr time: ' + str(t))
+        dt = t - self.prev_time
+        self.prev_time = t
+
+        dx = x_pos           - self.x_prev
+        dy = self.ball_pos_y - self.y_prev
+        self.x_prev = x_pos
+        self.y_prev = self.ball_pos_y
+
+        ball_vel = 0
+        if dt != 0:
+            ball_vel = round(dx/dt,2)
+
+        wheel_vel = round(wheel_vel, 2)
+        print('x_pos: '+ str(x_pos))
+        # print('ball pos y read: '+ str(self.ball_pos_y))
         # print('wheel pos read: '+ str(self.wheel_pos))
-        print('wheel vel read: '+ str(self.wheel_vel))
+        print('ball_vel: ' + str(ball_vel))
+        print('wheel_vel: '+ str(wheel_vel))
 
 
         # Take action        
@@ -174,11 +198,11 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         print('wheel vel write: '+ str(action_msg))
 
         # Define state  
-        state = [x_pos]
+        state = [x_pos, wheel_vel, ball_vel]
 
         # Check for end condition
-        # done = abs(self.ball_pos_x) > self.x_threshold
-        done = self.ball_pos_y > 500
+        done = (abs(self.ball_pos_x) > self.x_threshold) or (abs(self.wheel_vel) > self.vel_threshold) or (self.ball_pos_y > 500)
+        # done = self.ball_pos_y > 500 
         done = bool(done)
         # print('isDone: '+ str((done)))
 
@@ -235,7 +259,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         while x_pos is None or wheel_vel is None:
             x_pos = self.ball_pos_x
             # wheel_pos = self.wheel_pos
-            wheel_vel = self.wheel_vel
+            wheel_vel = (self.wheel_vel)
             # if time.time() > timeout:
             #     self.reset_ball_pos()
 
@@ -245,7 +269,8 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         # print('wheel pos published: '+ str(action_msg))
         #### 
 
-        state = [x_pos]
+        wheel_vel = round(wheel_vel,2)
+        state = [x_pos, wheel_vel,0]
         
         # Pause simulation
         rospy.wait_for_service('/gazebo/pause_physics')
