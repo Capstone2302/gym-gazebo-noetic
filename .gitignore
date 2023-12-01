@@ -25,8 +25,8 @@ gym_gazebo/envs/ros_ws/devel
 
 # All logs
 logs/
-.gazebo/*
 some_data.csv
+examples/gazebo_wheel/runs*
 
 .ipynb_checkpoints
 ghostdriver.log

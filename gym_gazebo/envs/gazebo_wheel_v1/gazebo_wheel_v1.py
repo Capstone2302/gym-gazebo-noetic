@@ -37,9 +37,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 0.2 # when when x is farther than lsdkfj pixels from the center_pixel, reset
+        self.x_threshold = 0.2 # 
         self.y_threshold = 450 # when we is greater than this reset
-        self.center_pixel = 399
+        self.center_pixel = 199
         self.vel_threshold = 30
         self.n_actions = 3 #should be odd number 
         self.bridge = CvBridge()
@@ -106,8 +106,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # print("cX  " + str(cX))
         self.cam_ball_pos_x = cX - self.center_pixel
 
-        # cv2.imshow("Image window", cv_image)
-        # cv2.waitKey(1)
+        cv2.imshow("Image window", cv_image)
+        cv2.waitKey(1)
         # cv2.imshow("BW", thresh)
         # cv2.waitKey(1)
 
