@@ -6,7 +6,7 @@
 <mesh filename="package:///part_1.stl"/>
 </geometry>
 <material name="part_1_material">
-<color rgba="0.615686 0.811765 0.929412 1.0"/>
+<color rgba="0.0 0.0 0.0 1.0"/>
 </material>
 </visual>
 <collision>
@@ -15,7 +15,7 @@
 <mesh filename="package:///part_1.stl"/>
 </geometry>
 <material name="part_1_material">
-<color rgba="0.615686 0.811765 0.929412 1.0"/>
+<color rgba="0.0 0.0 0.0 1.0"/>
 </material>
 </collision>
 <inertial>

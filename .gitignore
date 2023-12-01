@@ -23,7 +23,10 @@ gym_gazebo/envs/ros_ws/devel
 *.sublime-workspace
 *.vscode
 
+# All logs
 logs/
+.gazebo/*
+some_data.csv
 
 .ipynb_checkpoints
 ghostdriver.log

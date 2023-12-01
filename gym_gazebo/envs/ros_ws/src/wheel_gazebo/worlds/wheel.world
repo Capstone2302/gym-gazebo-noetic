@@ -11,7 +11,6 @@
       <pose>0 0 0.5 0 0 0</pose>
     </include>
 
-
     <!-- Global light source -->
     <include>
       <uri>model://sun</uri>
@@ -24,6 +23,23 @@
         <view_controller>orbit</view_controller>
       </camera>
     </gui>
+
+    <!-- 
+    Change simulation speed
+      real_time_factor
+        attempted RTF simulation tries to run at (not guarateed) 
+      real_time_update_rate (default 1000)
+        increase if computer can run faster
+      max_step_size (default 0.001)
+        increasing it increases RTF but simulation accuracy is
+        degraded
+    -->
+    <!-- Increase simulation speed. Keep max_step_size=0.001 to maintain same quality -->
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>500.0</real_time_update_rate>
+      <real_time_factor>10.0</real_time_factor>
+    </physics> 
 
   </world>
 </sdf>

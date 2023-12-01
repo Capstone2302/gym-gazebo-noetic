@@ -7,7 +7,12 @@
 <geometry>
 <mesh><uri>part_1.stl</uri></mesh>
 </geometry>
-<material><ambient>0.615686 0.811765 0.929412 1</ambient><diffuse>0.615686 0.811765 0.929412 1</diffuse><specular>0.1 0.1 0.1 1</specular><emissive>0 0 0 0</emissive></material>
+<material>
+<ambient>1 1 1 1</ambient>
+<diffuse>1 1 1 1</diffuse>
+<specular>0.1 0.1 0.1 1</specular>
+<emissive>0 0 0 0</emissive>
+</material>
 </visual>
 <collision name="part_1_0_part_1_visual">
 <pose>2.11419e-18 -4.33525e-18 2.47023e-18 -0.62391 -0.610176 -1.01567</pose>
