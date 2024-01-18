@@ -30,13 +30,13 @@ from sensor_msgs.msg import Image
 class GazeboWheelv0Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
-        gazebo_env.GazeboEnv.__init__(self, "/home/mackenzie/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
+        gazebo_env.GazeboEnv.__init__(self, "/home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 120 # when when x is farther than lsdkfj pixels from the center_pixel, reset
-        self.y_threshold = 450 # when we is greater than this reset
-        self.center_pixel = 399
+        self.x_threshold = 100 # when when x is farther than lsdkfj pixels from the center_pixel, reset
+        self.y_threshold = 250 # when we is greater than this reset
+        self.center_pixel = 200
         self.vel_threshold = 30
         self.n_actions = 7 #should be odd number 
         self.bridge = CvBridge()
@@ -98,6 +98,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
         except CvBridgeError as e:
             print(e)
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        gray[230:270,180:220] = 0 # region to turn black to avoid registering the stand as a circle
         output = cv_image.copy()
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2,20, 
                                    param1=50,
@@ -125,6 +126,7 @@ class GazeboWheelv0Env(gazebo_env.GazeboEnv):
                 print("ball missed")
         # cv2.imshow("output", np.hstack([cv_image, output]))
         cv2.imshow("Image window", output)
+        cv2.imshow("Gray", gray)
         cv2.waitKey(1)
         
     def _seed(self, seed=None):

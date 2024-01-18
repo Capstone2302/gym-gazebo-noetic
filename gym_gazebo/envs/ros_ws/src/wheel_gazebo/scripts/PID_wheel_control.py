@@ -19,8 +19,8 @@ import time
 class CommandToJointState:
 
     def __init__(self):
-        self.center_pixel = 399
-        self.Kp = 0.05
+        self.center_pixel = 200
+        self.Kp = 0.5
         self.Ki = 0.0001
         self.Kd = 0
         self.prev_err = 0
@@ -56,18 +56,21 @@ class CommandToJointState:
         # derivative = (error - self.prev_err)/self.dt
         # self.wheel_write = self.wheel_vel_read + self.Kp*error + self.Ki*self.integral + self.Kd*derivative
         # self.prev_err = error
+	
         if self.ball_pos_x < 0:
-            self.wheel_write -= abs(self.ball_pos_x)*self.Kp
+            self.wheel_write = -abs(self.ball_pos_x)*self.Kp
         elif self.ball_pos_x > 0:
-            self.wheel_write += abs(self.ball_pos_x)*self.Kp
+            self.wheel_write = abs(self.ball_pos_x)*self.Kp
         else:
             self.wheel_write = 0
 
         self.joint_pub.publish(self.wheel_write)
-        print('weel vel published: '+ str(self.wheel_write))
+        print('wheel vel published: '+ str(self.wheel_write))
 
-    def reset_ball_pos(self):    
-        self.joint_pub.publish(float(0))
+    def reset_ball_pos(self):
+        self.wheel_write = 0
+        self.joint_pub.publish(self.wheel_write)
+        print('wheel vel reset: '+ str(self.wheel_write))
         time.sleep(0.01)
         state_msg = ModelState()
         state_msg.model_name = 'ball'
@@ -79,7 +82,6 @@ class CommandToJointState:
         state_msg.pose.orientation.z = 0
         state_msg.pose.orientation.w = 0
         rospy.wait_for_service('/gazebo/set_model_state')
-        print('ball reset')
         try:
             set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
             resp = set_state( state_msg )
@@ -104,6 +106,7 @@ class CommandToJointState:
         except CvBridgeError as e:
             print(e)
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        gray[225:275, 180:225] = 0 # region to turn black to avoid registering the stand as a circle
         output = cv_image.copy()
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2,20, 
                                    param1=50,
@@ -120,8 +123,9 @@ class CommandToJointState:
                 self.ball_pos_y = y
                 print('ball pos x read: '+ str(self.ball_pos_x))
                 print('ball pos y read: '+ str(self.ball_pos_y))
-                if self.ball_pos_y > 450:
+                if self.ball_pos_y > 240:
                     self.reset_ball_pos()
+
                 
                 self.PID_control()
             if len(circles) == 0:
