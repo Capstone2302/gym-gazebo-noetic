@@ -24,6 +24,10 @@
         <view_controller>orbit</view_controller>
       </camera>
     </gui>
-
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>500.0</real_time_update_rate>
+      <real_time_factor>10.0</real_time_factor>
+    </physics> 
   </world>
 </sdf>
