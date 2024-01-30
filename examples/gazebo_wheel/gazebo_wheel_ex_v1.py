@@ -253,7 +253,7 @@ if __name__ == '__main__':
 
         # When the reward is sufficiently large we consider the problem has
         # been solved
-        if reward_m > 600:
+        if reward_m > 10000:
             print("Solved!")
             break
     writer.close()

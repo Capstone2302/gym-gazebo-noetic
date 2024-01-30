@@ -149,8 +149,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         print('x_pos: '+ str(x_pos))
         # print('ball pos y read: '+ str(self.ball_pos_y))
         # print('wheel pos read: '+ str(self.wheel_pos))
-        print('ball_vel: ' + str(ball_vel))
-        print('wheel_vel: '+ str(wheel_vel))
+        # print('ball_vel: ' + str(ball_vel))
+        # print('wheel_vel: '+ str(wheel_vel))
 
 
         # Take action        
@@ -166,7 +166,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.joint_pub.publish(action_msg)
         print('action: '+ str(int(action)))
         # print('wheel pos write: '+ str(action_msg))
-        print('wheel vel write: '+ str(action_msg))
+        # print('wheel vel write: '+ str(action_msg))
 
         # Define state  
         state = [x_pos, wheel_vel, ball_vel]
@@ -191,15 +191,15 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def reset_ball_pos(self):    
         state_msg = ModelState()
         state_msg.model_name = 'ball'
-        state_msg.pose.position.x = 0
+        state_msg.pose.position.x = np.random.randint(-100,100)/4000
         state_msg.pose.position.y = 0
-        state_msg.pose.position.z = 0.5
+        state_msg.pose.position.z = 0.39
         state_msg.pose.orientation.x = 0
         state_msg.pose.orientation.y = 0
         state_msg.pose.orientation.z = 0
         state_msg.pose.orientation.w = 0
         rospy.wait_for_service('/gazebo/set_model_state')
-        print('ball reset')
+        # print('ball reset')
         try:
             set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
             resp = set_state( state_msg )
@@ -211,7 +211,22 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         rospy.wait_for_service('/gazebo/set_link_state')
         # self.set_link(LinkState(link_name='wheel')) # WHY NO WORK
         self.joint_pub.publish(float(0)) #vel
-        time.sleep(0.01)
+        
+        # Unpause simulation to make observation
+        rospy.wait_for_service('/gazebo/unpause_physics')
+        try:
+            self.unpause()
+        except (rospy.ServiceException) as e:
+            print ("/gazebo/unpause_physics service call failed")
+
+        time.sleep(0.5)
+        # Pause simulation
+        rospy.wait_for_service('/gazebo/pause_physics')
+        try:
+            self.pause()
+        except (rospy.ServiceException) as e:
+            print ("/gazebo/pause_physics service call failed")
+        
         self.reset_ball_pos()
 
 
