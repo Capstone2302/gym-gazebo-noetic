@@ -28,6 +28,7 @@ from gazebo_msgs.srv import SetModelState
 from sensor_msgs.msg import Image
 import csv
 from rosgraph_msgs.msg import Clock
+from datetime import datetime
 
 class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def __init__(self):
@@ -42,12 +43,13 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.vel_threshold = 30
         self.n_actions = 3 #should be odd number 
         self.bridge = CvBridge()
+        self.record = False
 
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
-        self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
-        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback)
-        self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback)
+        self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback, queue_size=1)
+        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback, queue_size=1)
+        self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback, queue_size=1)
         self.sim_time = rospy.Subscriber("/clock", Clock, self.get_sim_time)
         # Gazebo specific services to start/stop its behavior and
         # facilitate the overall RL environment
@@ -57,11 +59,16 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                                            SetLinkState)
         rospy.wait_for_service('/gazebo/set_link_state')
 
-        # Logging
-        self.csvfile = open('some_data.csv', 'w', newline = '')
+        # Logging telemetry
+        self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
+        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
         self.writer = csv.writer(self.csvfile)
         self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
         self.csvfile.close()
+
+        # logging Video
+        self.frameNumber = 0
+        self.max_frames = 300
 
         # Setup the environment TODO
         self._seed()
@@ -83,6 +90,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.time = -1
         self.x_prev = 0
         self.y_prev = 0
+
+    def setRecordingState(self, record):
+        self.record=record
 
     def get_wheel_pos_callback(self, msg):
         # msg_str = str(msg)
@@ -109,14 +119,14 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.ball_pos_x = msg.pose[1].position.x
         self.ball_pos_y = msg.pose[1].position.z
 
-        self.csvfile = open('some_data.csv', 'a')
+        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
         self.writer = csv.writer(self.csvfile)
         self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
         self.csvfile.close()
 
     def get_ball_pos_camera_callback(self, img_msg):
         self.raw_image = img_msg
-        self.csvfile = open('some_data.csv', 'a')
+        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
         self.writer = csv.writer(self.csvfile)
         self.writer.writerow([str(self.time), "", "", "1"]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
         self.csvfile.close()
@@ -154,12 +164,26 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                 print("ball missed")
         print("Camera ball position: " + str(self.ball_pos_x_camera))
 
-        self.csvfile = open('some_data.csv', 'a')
+        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
         self.writer = csv.writer(self.csvfile)
         self.writer.writerow([str(self.time), str(self.ball_pos_x_camera*0.00209774908), "", ""]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
         self.csvfile.close()
         # cv2.imshow("output", np.hstack([cv_image, output]))
-        cv2.imshow("Image window", output)
+        # cv2.imshow("Image window", output)
+
+        # logging frames
+        if self.record:
+            output_dir = 'runs/video/images'
+            image_path = os.path.join(output_dir, f"frame_{self.frameNumber:04d}.png")
+            cv2.imwrite(image_path, output)
+
+            # If the number of frames exceeds the maximum, delete the oldest ones
+            if self.frameNumber >= self.max_frames:
+                oldest_frame_path = os.path.join(output_dir, f"frame_{self.frameNumber - self.max_frames:04d}.png")
+                os.remove(oldest_frame_path)
+
+            self.frameNumber +=1
+
         cv2.waitKey(1)
                 
     def _seed(self, seed=None):
@@ -183,13 +207,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         while self.raw_image is None:
             1
 
-        # Pause
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
-
         # Process data
         self.get_ball_pos_camera_callback2(self.raw_image)
         while x_pos is None or wheel_vel is None:
@@ -201,7 +218,12 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # diff = time.time()-diff
         # print('end ', diff*1000, ' ms')
             
-        
+        # Pause
+        rospy.wait_for_service('/gazebo/pause_physics')
+        try:
+            self.pause()
+        except (rospy.ServiceException) as e:
+            print ("/gazebo/unpause_physics service call failed")
         
         t = rospy.get_rostime().nsecs/10**6
         # print('Curr time: ' + str(t))
@@ -319,13 +341,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         wheel_vel = round(wheel_vel,2)
         state = [x_pos, wheel_vel,0]
-        
-        # Pause simulation
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
         
         # Reset data
         self.ball_pos_x = None

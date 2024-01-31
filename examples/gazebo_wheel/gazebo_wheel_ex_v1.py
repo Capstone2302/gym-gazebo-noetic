@@ -21,7 +21,14 @@ from tensorboardX import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from datetime import datetime
 
+# Logging dependencies
+import cv2
+import os
+import signal
+import sys
+import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
 BATCH_SIZE = 16   # number of episodes to play for every network iteration
@@ -48,6 +55,8 @@ class Net(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size, n_actions)
         )
+
+        self.folderName = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
 
     def forward(self, x):
         return self.net(x)
@@ -198,25 +207,75 @@ def filter_batch(batch, percentile):
     train_act_v = torch.LongTensor(train_act)
     return train_obs_v, train_act_v, reward_bound, reward_mean
 
+# Function to handle interrupt signal
+def handle_interrupt(signum, frame, folderName, net, record):
+    print("Interrupt signal received. Creating video...")
+    output_dir = 'runs/video/images'
+    output_video_path = 'runs/video/'+folderName+'.mp4'
+    fps = 30 # TODO: Might not be accurate
+    if record:
+        videoWriter(output_dir, output_video_path, fps)
+    torch.save(net.state_dict(), 'runs/model/'+folderName+'.pth')
+    print("Cleanup complete. Exiting.")
+    os._exit(0)
+
+def videoWriter(output_dir, output_video_path, fps):
+    if os.path.exists(output_dir):
+        create_video(output_dir, output_video_path, fps)
+
+        delete_output_directory(output_dir)
+
+def create_video(output_dir, output_video_path, fps):
+    images = [img for img in os.listdir(output_dir) if img.endswith(".png")]
+    images.sort()
+
+    frame = cv2.imread(os.path.join(output_dir, images[0]))
+    height, width, layers = frame.shape
+
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    for image in images:
+        img_path = os.path.join(output_dir, image)
+        img = cv2.imread(img_path)
+        video.write(img)
+
+    cv2.destroyAllWindows()
+    video.release()
+
+# Function to delete the entire output directory
+def delete_output_directory(output_dir):
+    try:
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
+    except Exception as e:
+        print(f"Error deleting directory {output_dir}: {e}")
 
 if __name__ == '__main__':
     # Setup environment
     env = gym.make('GazeboWheel-v1')
+    record = False
+    env.setRecordingState(record)
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
-    ## outdir = '/tmp/gazebo_gym_experiments'
-    ## env = gym.wrappers.Monitor(env, directory=outdir, force=True)
-    ## plotter = liveplot.LivePlot(outdir)
+    folderName = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
+    # outdir = 'runs/video/'+folderName
+    # env = gym.wrappers.Monitor(env, directory=outdir, force=True)
+    # plotter = liveplot.LivePlot(outdir)
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
+
+    signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
     objective = nn.CrossEntropyLoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
-    writer = SummaryWriter(comment="-wheel")
+    writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
+    delete_output_directory('runs/video/images')
+    os.makedirs('runs/video/images', exist_ok=True)
 
     # For every batch of episodes (16 episodes per batch) we identify the
     # episodes in the top 30% and we train our NN on them.
@@ -255,5 +314,12 @@ if __name__ == '__main__':
         # been solved
         if reward_m > 600:
             print("Solved!")
+
+            output_dir = 'runs/video/images'
+            output_video_path = 'runs/video/'+folderName+'.mp4'
+            fps = 30 # TODO: Might not be accurate
+            if record:
+                videoWriter(output_dir, output_video_path, fps)
+            torch.save(net.state_dict(), 'runs/model/'+folderName+'.pth')
             break
     writer.close()
