@@ -37,13 +37,20 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 100 # when when x is farther than lsdkfj pixels from the center_pixel, reset
+        self.x_threshold = 0.2 # when when x is farther than lsdkfj pixels from the center_pixel, reset
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
         self.n_actions = 3 #should be odd number 
         self.bridge = CvBridge()
         self.record = False
+
+        # Logging telemetry
+        self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
+        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
+        self.writer = csv.writer(self.csvfile)
+        self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
+        self.csvfile.close()
 
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
@@ -58,13 +65,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.set_link = rospy.ServiceProxy('/gazebo/set_link_state', 
                                            SetLinkState)
         rospy.wait_for_service('/gazebo/set_link_state')
-
-        # Logging telemetry
-        self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
-        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
-        self.writer = csv.writer(self.csvfile)
-        self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
-        self.csvfile.close()
 
         # logging Video
         self.frameNumber = 0
@@ -83,6 +83,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # State data:
         self.ball_pos_x = None
         self.ball_pos_y = 0
+        self.ball_pos_gazebo_time = 0
+        self.ball_pos_camera_time = 0
         self.wheel_pos = None
         self.wheel_vel = None
         self.ball_vel = None
@@ -118,6 +120,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def get_ball_pos_callback(self, msg):
         self.ball_pos_x = msg.pose[1].position.x
         self.ball_pos_y = msg.pose[1].position.z
+        self.ball_pos_gazebo_time = self.time
 
         self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
         self.writer = csv.writer(self.csvfile)
@@ -206,11 +209,24 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # Wait for data
         while self.raw_image is None:
             1
-
+        # Pause
+        rospy.wait_for_service('/gazebo/pause_physics')
+        try:
+            self.pause()
+        except (rospy.ServiceException) as e:
+            print ("/gazebo/unpause_physics service call failed")
         # Process data
         self.get_ball_pos_camera_callback2(self.raw_image)
+
+        # Unpause simulation to make observations
+        rospy.wait_for_service('/gazebo/unpause_physics')
+        try:
+            self.unpause()
+        except (rospy.ServiceException) as e:
+            print ("/gazebo/unpause_physics service call failed")
         while x_pos is None or wheel_vel is None:
-            x_pos = self.ball_pos_x_camera
+            x_pos = self.ball_pos_x
+            ball_pos_sim_time = self.ball_pos_gazebo_time
             # wheel_pos = self.wheel_pos
             wheel_vel = (self.wheel_vel)
             # if time.time() > timeout:
@@ -225,7 +241,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
         
-        t = rospy.get_rostime().nsecs/10**6
+        t = ball_pos_sim_time
         # print('Curr time: ' + str(t))
         dt = t - self.prev_time
         self.prev_time = t
@@ -237,7 +253,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         ball_vel = 0
         # if dt != 0:
-        ball_vel = round(dx/dt*10**5,2)
+        ball_vel = round(dx/dt,2)
 
         wheel_vel = round(wheel_vel, 2)
         print('Step loop x_pos: '+ str(x_pos))
@@ -263,7 +279,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         print('wheel vel write: '+ str(action_msg))
 
         # Define state  
-        state = [x_pos/100, wheel_vel, ball_vel]
+        state = [x_pos, wheel_vel, ball_vel]
 
         # Check for end condition
         done = (abs(x_pos) > self.x_threshold)
