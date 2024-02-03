@@ -216,7 +216,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.process_img(self.raw_image)
 
         while x_pos is None or wheel_vel is None:
-            # x_pos = self.ball_pos_x
+            x_pos = self.ball_pos_x
             # wheel_pos = self.wheel_pos
             wheel_vel = (self.wheel_vel)
             ball_pos_sim_time = self.ball_pos_gazebo_time
@@ -256,7 +256,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # Take action        
         action = action - (self.n_actions-1)/2
-        self.wheel_vel += action*0.2
+        self.wheel_vel += action*0.3
         # if action == 0:
         #     self.wheel_vel -= 0.2
         # else:

@@ -31,8 +31,8 @@ import sys
 import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
-BATCH_SIZE = 16   # number of episodes to play for every network iteration
-PERCENTILE = 70   # only the episodes with the top 30% total reward are used 
+BATCH_SIZE = 1000   # number of episodes to play for every network iteration
+PERCENTILE = 80   # only the episodes with the top 30% total reward are used 
                   # for training
 
 class Net(nn.Module):
@@ -313,7 +313,7 @@ if __name__ == '__main__':
 
         # When the reward is sufficiently large we consider the problem has
         # been solved
-        if reward_m > 600:
+        if reward_m > 1000:
             print("Solved!")
 
             output_dir = 'runs/video/images'
