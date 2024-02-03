@@ -33,7 +33,7 @@ from datetime import datetime
 class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
-        gazebo_env.GazeboEnv.__init__(self, "/home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
+        gazebo_env.GazeboEnv.__init__(self, "/home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
@@ -92,6 +92,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.time = -1
         self.x_prev = 0
         self.y_prev = 0
+
+        self.last_time = 0
 
     def setRecordingState(self, record):
         self.record=record
@@ -172,7 +174,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.writer.writerow([str(self.time), str(self.ball_pos_x_camera*0.00209774908), "", ""]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
         self.csvfile.close()
         # cv2.imshow("output", np.hstack([cv_image, output]))
-        # cv2.imshow("Image window", output)
+        cv2.imshow("Image window", output)
 
         # logging frames
         if self.record:
@@ -207,23 +209,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/unpause_physics service call failed")
 
         # Wait for data
+        
         while self.raw_image is None:
             1
-        # Pause
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
-        # Process data
-        self.get_ball_pos_camera_callback2(self.raw_image)
+        print("Last image acquisition: " + str(self.time - self.last_time))
 
-        # Unpause simulation to make observations
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
         while x_pos is None or wheel_vel is None:
             x_pos = self.ball_pos_x
             ball_pos_sim_time = self.ball_pos_gazebo_time
@@ -233,14 +223,27 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             #     self.reset_ball_pos()
         # diff = time.time()-diff
         # print('end ', diff*1000, ' ms')
-            
+
+        delta = self.time - self.last_time
+        print("****** Total DELTA : " + str(delta))
+        while delta < 0.03:
+            delta = self.time - self.last_time
+            print("waiting")
+            1
+
+        self.last_time = self.time
+
         # Pause
         rospy.wait_for_service('/gazebo/pause_physics')
         try:
             self.pause()
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
-        
+        # Process data
+        self.get_ball_pos_camera_callback2(self.raw_image)
+
+        print("Pausing sim delta: " + str(self.time - self.last_time))
+
         t = ball_pos_sim_time
         # print('Curr time: ' + str(t))
         dt = t - self.prev_time

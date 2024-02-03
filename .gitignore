@@ -3,6 +3,8 @@ gym_gazebo/envs/ros_ws/devel
 
 /examples/gazebo_cartpole/*.pkl
 
+/runs
+
 *.swp
 *.pyc
 *.py~

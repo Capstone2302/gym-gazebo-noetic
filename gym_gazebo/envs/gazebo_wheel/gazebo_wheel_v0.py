@@ -30,7 +30,7 @@ from sensor_msgs.msg import Image
 class GazeboWheelv0Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
-        gazebo_env.GazeboEnv.__init__(self, "/home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
+        gazebo_env.GazeboEnv.__init__(self, "/home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
