@@ -245,8 +245,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.x_prev = x_pos
         self.y_prev = self.ball_pos_y
 
-        ball_vel = 0
-        ball_vel = round(dx/dt*10**5,2)
+        self.ball_vel = round(dx/dt*10**5,2)
 
         wheel_vel = round(wheel_vel, 2)
 
@@ -259,7 +258,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.joint_pub.publish(action_msg)
 
         # Define state  
-        state = [x_pos, wheel_vel, ball_vel]
+        state = [x_pos, wheel_vel, self.ball_vel]
 
         # Check for end condition
         done = (abs(self.ball_pos_x) > self.x_threshold)
