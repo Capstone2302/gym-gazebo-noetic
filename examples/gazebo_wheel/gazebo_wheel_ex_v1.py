@@ -278,8 +278,8 @@ if __name__ == '__main__':
     delete_output_directory('runs/video/images')
     os.makedirs('runs/video/images', exist_ok=True)
 
-    # For every batch of episodes (16 episodes per batch) we identify the
-    # episodes in the top 30% and we train our NN on them.
+    # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
+    # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
