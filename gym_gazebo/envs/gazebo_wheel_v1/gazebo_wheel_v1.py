@@ -37,11 +37,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 0.2 # when when x is farther than lsdkfj pixels from the center_pixel, reset
+        self.x_threshold = 0.2 # when when x is farther than THRESHOLD pixels from the center_pixel, reset
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
-        self.n_actions = 3 #should be odd number 
+        self.n_actions = 5 #should be odd number 
         self.bridge = CvBridge()
         self.record = None
         self.ball_pos_gazebo_time = 0
@@ -59,7 +59,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
         self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
         self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback)
-        self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback, queue_size=1)
+        # self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback, queue_size=1)
         self.sim_time_sub = rospy.Subscriber("/clock", Clock, self.get_sim_time)
         # Gazebo specific services to start/stop its behavior and
         # facilitate the overall RL environment
@@ -201,6 +201,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         x_pos = None
         wheel_pos = None
         wheel_vel = None
+        self.raw_image = None
 
         # Unpause simulation to make observations
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -209,9 +210,13 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        # Wait for data
         while self.raw_image is None:
-            1
+            try:
+                self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
+            except:
+                print("failed image acquistion")
+                pass
+
         # Pause
         rospy.wait_for_service('/gazebo/pause_physics')
         try:
@@ -289,7 +294,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         x = np.random.uniform(-r/2,r/2)
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
-        state_msg.pose.position.z = 0.38 - (r - np.sqrt(r**2-x**2))
+        state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
         state_msg.pose.orientation.x = 0
         state_msg.pose.orientation.y = 0
         state_msg.pose.orientation.z = 0

@@ -21,25 +21,34 @@
 # Feb02-16-13-39-rlwheel
 - run on gazebo data
 - started from Feb01-12-53-36-rlwheel.pth
-- no delay
+- no artificial delay
 - RTF = 1
 - BATCH_SIZE = 1000
 - PERCENTILE = 80
 
-# TO TRY
-- run on gazebo data
-- started from Feb01-12-53-36-rlwheel.pth
-- no delay
+# Feb02-19-54-02-rlwheel
+- train on gazebo data
+- started new model
+- no artificial delay
 - RTF = 1
-- BATCH_SIZE = 1000
+- BATCH_SIZE = 16
 - PERCENTILE = 80
-- self.wheel_vel += action*0.3
+- n_actions = 5
+- add randomization to ball spawn
+- removed csv writing for telemetry
+- didn't train very well
 
-# ADD PAUSE 
-- run on gazebo data
-- started from Feb01-12-53-36-rlwheel.pth
-- no delay
+# 
+- train on gazebo data
+- started new model
+- no artificial delay
 - RTF = 1
-- BATCH_SIZE = 1000
+- BATCH_SIZE = 100
 - PERCENTILE = 80
-- self.wheel_vel += action*0.3
+- n_actions = 5
+
+To Try:
+# try more action
+# add pause
+# change action scaling
+# do csv writing during pause or remove csv writing

@@ -31,7 +31,7 @@ import sys
 import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
-BATCH_SIZE = 1000   # number of episodes to play for every network iteration
+BATCH_SIZE = 100   # number of episodes to play for every network iteration
 PERCENTILE = 80   # only the episodes with the top 30% total reward are used 
                   # for training
 
@@ -266,7 +266,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Feb01-12-53-36-rlwheel.pth'))
+    # net.load_state_dict(torch.load('runs/model/Feb01-12-53-36-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
