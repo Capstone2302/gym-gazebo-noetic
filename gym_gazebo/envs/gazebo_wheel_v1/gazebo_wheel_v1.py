@@ -47,11 +47,13 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.ball_pos_gazebo_time = 0
 
         # Logging telemetry
-        self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
-        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
-        self.writer = csv.writer(self.csvfile)
-        self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
-        self.csvfile.close()
+        self.do_telemetry = False
+        if self.do_telemetry:
+            self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
+            self.writer = csv.writer(self.csvfile)
+            self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
+            self.csvfile.close()
 
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
@@ -125,18 +127,21 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         #     self.ball_pos_gazebo_time = self.time
             self.ball_pos_x = msg.pose[1].position.x
             self.ball_pos_y = msg.pose[1].position.z
-
-            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
-            self.writer = csv.writer(self.csvfile)
-            self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
-            self.csvfile.close()
+        
+            if self.do_telemetry:
+                self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
+                self.writer = csv.writer(self.csvfile)
+                self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
+                self.csvfile.close()
 
     def get_ball_pos_camera_callback(self, img_msg):
         self.raw_image = img_msg
-        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
-        self.writer = csv.writer(self.csvfile)
-        self.writer.writerow([str(self.time), "", "", "1"]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
-        self.csvfile.close()
+
+        if self.do_telemetry:
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
+            self.writer = csv.writer(self.csvfile)
+            self.writer.writerow([str(self.time), "", "", "1"]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
+            self.csvfile.close()
 
     def process_img(self, img_msg):
         try:
@@ -163,11 +168,12 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             if len(circles) == 0:
                 print("ball missed")
         # print("Camera ball position: " + str(self.ball_pos_x_camera))
-
-        self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
-        self.writer = csv.writer(self.csvfile)
-        self.writer.writerow([str(self.time), str(self.ball_pos_x_camera*0.00209774908), "", ""]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
-        self.csvfile.close()
+                
+        if self.do_telemetry:
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
+            self.writer = csv.writer(self.csvfile)
+            self.writer.writerow([str(self.time), str(self.ball_pos_x_camera*0.00209774908), "", ""]) # magic number is conversion factor from pixels to meters, derivation on page 44 of Sean Ghaeli's logbook.
+            self.csvfile.close()
         # cv2.imshow("output", np.hstack([cv_image, output]))
         # cv2.imshow("Image window", output)
 
@@ -279,9 +285,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def reset_ball_pos(self):    
         state_msg = ModelState()
         state_msg.model_name = 'ball'
-        state_msg.pose.position.x = 0
+        r = 0.1524
+        x = np.random.uniform(-r/2,r/2)
+        state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
-        state_msg.pose.position.z = 0.38
+        state_msg.pose.position.z = 0.38 - (r - np.sqrt(r**2-x**2))
         state_msg.pose.orientation.x = 0
         state_msg.pose.orientation.y = 0
         state_msg.pose.orientation.z = 0
