@@ -31,8 +31,8 @@ import sys
 import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
-BATCH_SIZE = 100   # number of episodes to play for every network iteration
-PERCENTILE = 80   # only the episodes with the top 30% total reward are used 
+BATCH_SIZE = 16   # number of episodes to play for every network iteration
+PERCENTILE = 70   # only the episodes with the top 30% total reward are used 
                   # for training
 
 class Net(nn.Module):
@@ -53,6 +53,8 @@ class Net(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.ReLU(),
+            # nn.Linear(hidden_size, hidden_size),
+            # nn.ReLU(),
             nn.Linear(hidden_size, n_actions)
         )
 
@@ -95,8 +97,11 @@ def iterate_batches(env, net, batch_size):
 
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
+    action_num = 0
     while True:
+        action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
+        print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
         # Run the NN and convert its output to probabilities by mapping the 
@@ -111,6 +116,7 @@ def iterate_batches(env, net, batch_size):
         #    the probability distribution are stored. The second element of the
         #    network output stores the gradient functions (which we don't use) 
         act_probs = act_probs_v.data.numpy()[0]
+        print('act_probs ',act_probs)
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
@@ -140,6 +146,7 @@ def iterate_batches(env, net, batch_size):
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
+            action_num = 0
 
             # If we accumulated enough episodes in the batch of episodes we 
             # pass the batch of episodes to the caller of this function. This
@@ -266,7 +273,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    # net.load_state_dict(torch.load('runs/model/Feb01-12-53-36-rlwheel.pth'))
+    # net.load_state_dict(torch.load('runs/model/Feb02-20-32-31-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
@@ -281,6 +288,7 @@ if __name__ == '__main__':
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
+        print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
 
@@ -300,6 +308,8 @@ if __name__ == '__main__':
         # then adjust the weights based on the gradients using optimizer.step()
         loss_v.backward()
         optimizer.step()
+
+        print("**** DONE TRAINING *****")
 
         # **** END OF TRAINING ****
 
