@@ -32,7 +32,7 @@ import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
 BATCH_SIZE = 100   # number of episodes to play for every network iteration
-PERCENTILE = 80   # only the episodes with the top 30% total reward are used 
+PERCENTILE = 80   # only the episodes with the top 1-(PERCENTILE%) total reward are used 
                   # for training
 
 class Net(nn.Module):

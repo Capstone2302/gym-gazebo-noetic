@@ -7,6 +7,10 @@ gym_gazebo/envs/ros_ws/devel
 /examples/gazebo_wheel/runs/tensorboard
 /examples/gazebo_wheel/runs/video
 
+/runs
+
+.gazebo
+
 *.swp
 *.pyc
 *.py~
