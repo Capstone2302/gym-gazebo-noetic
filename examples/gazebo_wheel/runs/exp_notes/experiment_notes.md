@@ -147,6 +147,85 @@
 - FIXXED REALLY HIGH BALL VELOCITY
 - changed how to get dt
 
+# Feb06-18-19-23-rlwheel
+- train on gazebo data
+- started new model
+- RTF = 1
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- HIDDEN_SIZE = 128
+- layers = 2
+- n_actions = 5
+- rewards [-1, 1]
+- ball spawning only one side
+
+# Feb06-18-45-33-rlwheel
+- train on gazebo data
+- started new model
+- RTF = 1
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- HIDDEN_SIZE = 128
+- layers = 1
+- n_actions = 5
+- rewards [-1, 1]
+- ball spawning only one side
+
+# Feb06-20-05-43-rlwheel
+# Feb06-21-04-21-rlwheel
+- train on gazebo data
+- started new model
+- RTF = 1
+- HIDDEN_SIZE = 128
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 5
+- rewards [-1, 1]
+- ball spawned left
+
+# Feb06-21-42-43-rlwheel
+- train on gazebo data
+- started new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 5
+- rewards [-1, 1]
+- ball spawn one sided
+- positions rounded
+
+# Feb06-22-05-23-rlwheel
+# 
+- train on gazebo data
+- started new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 5
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+
+#
+- train on gazebo data
+- started new model
+- RTF = 1
+- HIDDEN_SIZE = 128
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- ** n_actions = 3 **
+- desired output = ax^2 + bx + c
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- ** Training with position controller! **
+- timer: 10 min
 
 
 # To Try:
@@ -155,3 +234,4 @@
 - add pause
 - change action scaling
 - do csv writing during pause or remove csv writing
+- get rid of ball velocity
