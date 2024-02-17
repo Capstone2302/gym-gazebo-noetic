@@ -41,7 +41,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
-        self.n_actions = 5 #should be odd number 
+        self.n_actions = 2 #should be odd number 
         self.bridge = CvBridge()
         self.record = None
         self.ball_pos_gazebo_time = 0
@@ -98,17 +98,17 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.record=record
 
     def get_wheel_pos_callback(self, msg):
-        # msg_str = str(msg)
-        # i = msg_str.find('position: [')+11
-        # msg_str = msg_str[i:]
-        # i = msg_str.find(']')
-        # self.wheel_pos = float(msg_str[0:i])
-
         msg_str = str(msg)
-        i = msg_str.find('velocity: [')+11
+        i = msg_str.find('position: [')+11
         msg_str = msg_str[i:]
         i = msg_str.find(']')
-        self.wheel_vel = float(msg_str[0:i])
+        self.wheel_pos = float(msg_str[0:i])
+
+        # msg_str = str(msg)
+        # i = msg_str.find('velocity: [')+11
+        # msg_str = msg_str[i:]
+        # i = msg_str.find(']')
+        # self.wheel_vel = float(msg_str[0:i])
 
         # print(msg.velocity)
         # self.wheel_vel = msg.velocity
@@ -238,11 +238,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        while x_pos is None or wheel_vel is None:
+        while x_pos is None or wheel_pos is None:
             x_pos = self.ball_pos_x
             # wheel_pos = self.wheel_pos
-            wheel_vel = (self.wheel_vel)
-            ball_pos_sim_time = self.ball_pos_gazebo_time
+            wheel_vel = (self.wheel_pos)
+            # ball_pos_sim_time = self.ball_pos_gazebo_time
             
         # Pause
         rospy.wait_for_service('/gazebo/pause_physics')
@@ -266,13 +266,14 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
 
         # Take action        
-        action = action - (self.n_actions-1)/2
-        self.wheel_vel += action*1
+        # action = action - (self.n_actions-1)/2
+        # self.wheel_vel += action*1
         # self.wheel_vel = action*0.2
         # print('wheel vel pub: '+str(self.wheel_vel))
+        self.wheel_pos += action
         print('action: ', action)
         
-        action_msg = float(self.wheel_vel)
+        action_msg = float(self.wheel_pos)
         self.joint_pub.publish(action_msg)
 
         # Define state  
@@ -303,7 +304,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.model_name = 'ball'
         r = 0.1524
         x = np.random.uniform(-r/2,r/2)
-        x = 0.05
+        # x = 0.05
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
@@ -325,7 +326,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # Reset world
         rospy.wait_for_service('/gazebo/set_link_state')
         # self.set_link(LinkState(link_name='wheel')) # WHY NO WORK
-        self.joint_pub.publish(float(0)) #vel
         
         # Unpause simulation to make observation
         rospy.wait_for_service('/gazebo/unpause_physics')

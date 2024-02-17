@@ -93,11 +93,13 @@ def iterate_batches(env, net, batch_size):
     #   * x_dot
     #   * theta
     #   * theta_dot
+    print('****starting new batch*****')
     obs = env.reset()
 
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
     action_num = 0
+    i=0
     while True:
         action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
@@ -106,7 +108,7 @@ def iterate_batches(env, net, batch_size):
 
         # Run the NN and convert its output to probabilities by mapping the 
         # output through the SOFTMAX object.
-        act_probs_v = sm(net(obs_v))
+        act_probs_v = net(obs_v)
 
         # Unpack the output of the NN to extract the probabilities associated
         # with each action.
@@ -120,7 +122,8 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        action = np.random.choice(len(act_probs), p=act_probs)
+        # action = np.random.choice(len(act_probs), p=act_probs)
+        action = np.random.normal(act_probs[0], abs(act_probs[1]))
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
@@ -132,7 +135,7 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action=action))
+        episode_steps.append(EpisodeStep(observation=obs, action = act_probs))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -145,6 +148,8 @@ def iterate_batches(env, net, batch_size):
             batch.append(Episode(reward=episode_reward, steps=episode_steps))
             episode_reward = 0.0
             episode_steps = []
+            i+=1
+            print('episode no. ', str(i))
             next_obs = env.reset()
             action_num = 0
 
@@ -211,7 +216,7 @@ def filter_batch(batch, percentile):
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
     train_obs_v = torch.FloatTensor(train_obs)
-    train_act_v = torch.LongTensor(train_act)
+    train_act_v = torch.FloatTensor(train_act)
     return train_obs_v, train_act_v, reward_bound, reward_mean
 
 # Function to handle interrupt signal
@@ -278,7 +283,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
-    objective = nn.CrossEntropyLoss()
+    objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
@@ -302,6 +307,8 @@ if __name__ == '__main__':
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
+        print('action scores shape: ',str(action_scores_v.shape))
+        print('acts_v shape: ',str(acts_v.shape))
         loss_v = objective(action_scores_v, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
