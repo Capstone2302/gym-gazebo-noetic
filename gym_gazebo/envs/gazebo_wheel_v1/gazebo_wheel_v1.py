@@ -47,7 +47,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.ball_pos_gazebo_time = 0
 
         # Logging telemetry
-        self.do_telemetry = False
+        self.do_telemetry = True
         if self.do_telemetry:
             self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
             self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
@@ -210,6 +210,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
+        print(self.time)
+        last_time = self.time
         while self.raw_image is None:
             try:
                 self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
@@ -218,6 +220,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                 pass
 
         # Pause
+        print(self.time)
+        print("Delta: " + str(self.time - last_time))
         rospy.wait_for_service('/gazebo/pause_physics')
         try:
             self.pause()
@@ -248,22 +252,25 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/pause_physics service call failed")
         
         t = self.time
-        dt = t - self.prev_time
-        self.prev_time = t
+        dt = t - last_time
+        #self.prev_time = t
 
         dx = x_pos           - self.x_prev
         dy = self.ball_pos_y - self.y_prev
         self.x_prev = x_pos
         self.y_prev = self.ball_pos_y
 
-        self.ball_vel = round(dx/dt*10**5,2)
+        self.ball_vel = round(dx/dt,2)
 
         wheel_vel = round(wheel_vel, 2)
 
 
         # Take action        
         action = action - (self.n_actions-1)/2
-        self.wheel_vel += action*0.2
+        self.wheel_vel += action*1
+        # self.wheel_vel = action*0.2
+        # print('wheel vel pub: '+str(self.wheel_vel))
+        print('action: ', action)
         
         action_msg = float(self.wheel_vel)
         self.joint_pub.publish(action_msg)
@@ -276,10 +283,14 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         
         done = bool(done)
 
-        if not done:
-            reward = 1.0
-        else:
-            reward = 0
+        # if not done:
+        #     reward = 1 
+        # else:
+        #     reward = 0
+        
+        reward = 1-abs(self.ball_pos_x)/self.x_threshold*2
+        print('ball pos: ' , self.ball_pos_x)
+        print('reward ',reward)
 
         # Reset data
         self.ball_pos_x = None
@@ -292,6 +303,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.model_name = 'ball'
         r = 0.1524
         x = np.random.uniform(-r/2,r/2)
+        x = 0.05
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
@@ -308,6 +320,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print( "Service call failed")
     
     def reset(self): 
+        print("**** RESETTING *****")
+
         # Reset world
         rospy.wait_for_service('/gazebo/set_link_state')
         # self.set_link(LinkState(link_name='wheel')) # WHY NO WORK
