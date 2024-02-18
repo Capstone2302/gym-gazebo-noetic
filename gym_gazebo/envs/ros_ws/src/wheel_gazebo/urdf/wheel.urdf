@@ -152,10 +152,10 @@ j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gaze
     <transmission name="tran1">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="rev">
-            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </joint>
         <actuator name="motor1">
-            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>

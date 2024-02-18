@@ -13,14 +13,18 @@ from datetime import datetime
 import message_filters
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from gazebo_msgs.msg import ModelState
+from gazebo_msgs.msg import ModelStates
 from gazebo_msgs.srv import SetModelState
+from rosgraph_msgs.msg import Clock
+import pandas as pd
+
 import time
 
 class CommandToJointState:
 
     def __init__(self):
         self.center_pixel = 399
-        self.Kp = 0.05
+        self.Kp = 1
         self.Ki = 0.0001
         self.Kd = 0
         self.prev_err = 0
@@ -40,12 +44,30 @@ class CommandToJointState:
         self.bridge = CvBridge()
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
         # self.wheel_sub = message_filters.Subscriber('/wheel/joint_states', JointState)
-        self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
+        self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback, queue_size=1)
         # self.ball_sub = message_filters.Subscriber("/wheel/camera1/image_raw", Image)
-        self.ball_sub = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_callback)
+        self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback, queue_size=1)
         # ats = ApproximateTimeSynchronizer([self.wheel_sub, self.ball_sub], queue_size=5, slop=0.1)
         self.reset_ball_pos()
-        # ats.registerCallback(self.my_callback)
+        self.sim_time_sub = rospy.Subscriber("/clock", Clock, self.get_sim_time)
+
+        self.data_points = []
+        self.buffer_size = 100
+        self.data_df = pd.DataFrame(columns=['Time', 'Ball position', 'Control Signal'])
+
+    def get_sim_time(self, data):
+        self.time = data.clock.secs + data.clock.nsecs/(1e9)
+
+    def append_buffer_to_dataframe(self):
+        buffer_df = pd.DataFrame(self.data_points)
+
+        self.data_df = pd.concat([self.data_df, buffer_df], ignore_index=True)
+
+        self.data_points = []
+
+    def shutdown(self):
+        print("Shutdown function triggered")
+        self.data_df.to_csv('~/Documents/Capstone/gym-gazebo-noetic/runs/telemetry/pid_control_response' + datetime.now().strftime("%b%d-%H-%M-%S-rlwheel") + ".csv", index=False)
 
 
     def PID_control(self):
@@ -57,23 +79,32 @@ class CommandToJointState:
         # self.wheel_write = self.wheel_vel_read + self.Kp*error + self.Ki*self.integral + self.Kd*derivative
         # self.prev_err = error
         if self.ball_pos_x < 0:
-            self.wheel_write -= abs(self.ball_pos_x)*self.Kp
-        elif self.ball_pos_x > 0:
             self.wheel_write += abs(self.ball_pos_x)*self.Kp
+        elif self.ball_pos_x > 0:
+            self.wheel_write -= abs(self.ball_pos_x)*self.Kp
         else:
             self.wheel_write = 0
 
         self.joint_pub.publish(self.wheel_write)
         print('weel vel published: '+ str(self.wheel_write))
+        self.data_points.append({'Time': self.time,
+                                         'Ball position': self.ball_pos_x,
+                                         'Control Signal': self.wheel_write})
+
+        if len(self.data_points) >= self.buffer_size:
+            self.append_buffer_to_dataframe()
 
     def reset_ball_pos(self):    
-        self.joint_pub.publish(float(0))
-        time.sleep(0.01)
+        # self.joint_pub.publish(float(0))
+        time.sleep(0.5)
         state_msg = ModelState()
         state_msg.model_name = 'ball'
-        state_msg.pose.position.x = 0
+        self.wheel_write = 0
+        r = 0.1524
+        x = np.random.uniform(-r/4,r/4)
+        state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
-        state_msg.pose.position.z = 0.5
+        state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
         state_msg.pose.orientation.x = 0
         state_msg.pose.orientation.y = 0
         state_msg.pose.orientation.z = 0
@@ -93,49 +124,21 @@ class CommandToJointState:
         i = msg_str.find(']')
         self.wheel_vel_read = float(msg_str[0:i])
         
-        print('wheel vel read: '+ str(self.wheel_vel_read ))
         # self.wheel_write = self.wheel_vel_read +1
         # self.joint_pub.publish(self.wheel_write)
         # print('position published: '+ str(self.wheel_vel_read +1))
 
-    def get_ball_pos_callback(self, img_msg):
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
-        except CvBridgeError as e:
-            print(e)
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-        output = cv_image.copy()
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 2,20, 
-                                   param1=50,
-                                   param2=30,
-                                   minRadius=0,
-                                   maxRadius=15)
-        if circles is not None:
-            circles = np.round(circles[0, :]).astype("int")
-            for (x, y, r) in circles:
-                cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                # cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                # print(str(y))
-                self.ball_pos_x = x - self.center_pixel #neg ball_pos means left of centre, pos = right of center
-                self.ball_pos_y = y
-                print('ball pos x read: '+ str(self.ball_pos_x))
-                print('ball pos y read: '+ str(self.ball_pos_y))
-                if self.ball_pos_y > 450:
-                    self.reset_ball_pos()
-                
-                self.PID_control()
-            if len(circles) == 0:
-                print("ball missed")
-        # cv2.imshow("output", np.hstack([cv_image, output]))
-        cv2.imshow("Image window", output)
-        cv2.waitKey(1)
+    def get_ball_pos_callback(self, msg):
 
-
-    def my_callback(self, jointState,image):
-        self.get_wheel_pos_callback(jointState)
-        self.get_ball_pos_callback(image)
+        self.ball_pos_x = msg.pose[1].position.x
+        self.ball_pos_y = msg.pose[1].position.z
+        print("ball pos x read: " + str(self.ball_pos_x))
+        self.PID_control()
+        if self.ball_pos_y < 0.1:
+            self.reset_ball_pos() 
 
 if __name__ == '__main__':
     rospy.init_node('command_to_joint_state')
     command_to_joint_state = CommandToJointState()
+    rospy.on_shutdown(command_to_joint_state.shutdown)
     rospy.spin()

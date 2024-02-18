@@ -38,7 +38,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
         self.x_threshold = 0.2 # when when x is farther than THRESHOLD pixels from the center_pixel, reset
-        self.y_threshold = 450 # when we is greater than this reset
+        self.y_threshold = 0.1 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
         self.n_actions = 5 #should be odd number 
@@ -47,7 +47,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.ball_pos_gazebo_time = 0
 
         # Logging telemetry
-        self.do_telemetry = False
+        self.do_telemetry = True
         if self.do_telemetry:
             self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
             self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
@@ -81,7 +81,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         #TODO add dimension for wheel position which is needed for non-circular wheels=
         low  = np.array([-self.x_threshold, -self.vel_threshold])
         high = np.array([ self.x_threshold, self.vel_threshold, np.finfo(np.float32).max])
-        self.observation_space = spaces.Box(low=-high, high = high)
+        self.observation_space = spaces.Box(low=-np.array([self.x_threshold]), high = np.array([self.x_threshold]))
 
         # State data:
         self.ball_pos_x = None
@@ -203,29 +203,33 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         wheel_vel = None
         self.raw_image = None
 
-        # Unpause simulation to make observations
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
+        print("Step starting time: " + str(self.time))
+        last_time = self.time
 
-        while self.raw_image is None:
-            try:
-                self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
-            except:
-                print("failed image acquistion")
-                pass
+        # # Unpause simulation to make observations
+        # rospy.wait_for_service('/gazebo/unpause_physics')
+        # try:
+        #     self.unpause()
+        # except (rospy.ServiceException) as e:
+        #     print ("/gazebo/unpause_physics service call failed")
+        # while self.raw_image is None:
+        #     try:
+        #         self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
+        #     except:
+        #         print("failed image acquistion")
+        #         pass
 
-        # Pause
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
+        # # Pause
+        # print(self.time)
+        # print("Delta: " + str(self.time - last_time))
+        # rospy.wait_for_service('/gazebo/pause_physics')
+        # try:
+        #     self.pause()
+        # except (rospy.ServiceException) as e:
+        #     print ("/gazebo/pause_physics service call failed")
 
         # Process data
-        self.process_img(self.raw_image)
+        # self.process_img(self.raw_image)
 
         # Unpause simulation to make observations
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -248,38 +252,45 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/pause_physics service call failed")
         
         t = self.time
-        dt = t - self.prev_time
-        self.prev_time = t
+        dt = t - last_time
+        #self.prev_time = t
 
         dx = x_pos           - self.x_prev
         dy = self.ball_pos_y - self.y_prev
         self.x_prev = x_pos
         self.y_prev = self.ball_pos_y
 
-        self.ball_vel = round(dx/dt*10**5,2)
+        self.ball_vel = round(dx/dt,2)
 
         wheel_vel = round(wheel_vel, 2)
 
 
         # Take action        
         action = action - (self.n_actions-1)/2
-        self.wheel_vel += action*0.2
+        self.wheel_vel += action*1
+        # self.wheel_vel = action*0.2
+        # print('wheel vel pub: '+str(self.wheel_vel))
+        print('action: ', action)
         
         action_msg = float(self.wheel_vel)
         self.joint_pub.publish(action_msg)
 
         # Define state  
-        state = [x_pos, wheel_vel, self.ball_vel]
+        state = [x_pos]
 
         # Check for end condition
-        done = (abs(self.ball_pos_x) > self.x_threshold)
+        done = (abs(self.ball_pos_x) > self.x_threshold) or (abs(self.ball_pos_y) < self.y_threshold)
         
         done = bool(done)
 
-        if not done:
-            reward = 1.0
-        else:
-            reward = 0
+        # if not done:
+        #     reward = 1 
+        # else:
+        #     reward = 0
+        
+        reward = 1-abs(self.ball_pos_x)/self.x_threshold*2
+        print('ball pos: ' , self.ball_pos_x)
+        print('reward ',reward)
 
         # Reset data
         self.ball_pos_x = None
@@ -291,7 +302,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg = ModelState()
         state_msg.model_name = 'ball'
         r = 0.1524
-        x = np.random.uniform(-r/2,r/2)
+        x = np.random.uniform(-r/4,r/4)
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
@@ -308,6 +319,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print( "Service call failed")
     
     def reset(self): 
+        print("**** RESETTING *****")
+
         # Reset world
         rospy.wait_for_service('/gazebo/set_link_state')
         # self.set_link(LinkState(link_name='wheel')) # WHY NO WORK
@@ -354,7 +367,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/pause_physics service call failed")
 
         wheel_vel = round(wheel_vel,2)
-        state = [x_pos, wheel_vel,0]
+        state = [x_pos]
         
         # Reset data
         self.ball_pos_x = None
