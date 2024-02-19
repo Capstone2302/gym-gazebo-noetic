@@ -63,7 +63,7 @@ class CommandToJointState:
         else:
             self.wheel_write = 0
 
-        self.joint_pub.publish(self.wheel_write)
+        # self.joint_pub.publish(self.wheel_write)
         print('weel vel published: '+ str(self.wheel_write))
 
     def reset_ball_pos(self):    
@@ -121,7 +121,8 @@ class CommandToJointState:
                 print('ball pos x read: '+ str(self.ball_pos_x))
                 print('ball pos y read: '+ str(self.ball_pos_y))
                 if self.ball_pos_y > 450:
-                    self.reset_ball_pos()
+                    # self.reset_ball_pos()
+                    1
                 
                 self.PID_control()
             if len(circles) == 0:

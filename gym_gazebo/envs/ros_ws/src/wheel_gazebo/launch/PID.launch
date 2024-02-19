@@ -1,4 +1,0 @@
-<launch>
-  <include file="$(find wheel_gazebo)/launch/urdf.launch" />
-  <node name="listener_node" pkg="wheel_gazebo" type="PID_wheel_control.py" output="screen"/>
-</launch>

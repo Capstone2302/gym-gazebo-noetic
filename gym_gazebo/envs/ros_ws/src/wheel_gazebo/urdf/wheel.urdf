@@ -149,15 +149,14 @@ j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gaze
         </plugin>
     </gazebo>
     </gazebo>
-    <transmission name="tran1">
+    <transmission name="effort_transmission">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="rev">
-            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
         </joint>
-        <actuator name="motor1">
-            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        <actuator name="effort_actuator">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
 </robot>

@@ -3,18 +3,23 @@ wheel:
   joint_state_controller:
     type: joint_state_controller/JointStateController
     publish_rate: 50  
-
+  
+  # Effort Controllers ---------------------------------------
+  rev_effort_controller:
+    type: effort_controllers/JointEffortController
+    joint: rev
+    pid: {p: 100.0, i: 0.01, d: 10.0} # effort joint pid
+  # Velocity Controllers ---------------------------------------
+  # rev_velocity_controller:
+  #   type: velocity_controllers/JointVelocityController
+  #   joint: rev
+  #   pid: {p: 100.0, i: 0.01, d: 10.0} # effort joint pid
   # Position Controllers ---------------------------------------
   # rev_position_controller:
   #   type: effort_controllers/JointPositionController
   #   joint: rev
   #   pid: {p: 100.0, i: 0.01, d: 10.0} # effort joint pid
 
-  # Velocity Controllers ---------------------------------------
-  rev_position_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: rev
-    pid: {p: 100.0, i: 0.01, d: 10.0} # effort joint pid
 
   # velocity joint pid
   # gazebo_ros_control/pid_gains/rev:
