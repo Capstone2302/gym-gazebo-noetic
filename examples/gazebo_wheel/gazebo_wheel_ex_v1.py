@@ -98,12 +98,14 @@ def iterate_batches(env, net, batch_size):
 
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
-    action_num = 0
     i=0
+    action_num = 0
     while True:
+        start_time = env.time
+
         action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
-        print("action num: " + str(action_num) + " obs: " + str(obs))
+        # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
         # Run the NN and convert its output to probabilities by mapping the 
@@ -118,17 +120,19 @@ def iterate_batches(env, net, batch_size):
         #    the probability distribution are stored. The second element of the
         #    network output stores the gradient functions (which we don't use) 
         act_probs = act_probs_v.data.numpy()[0]
-        print('act_probs ',act_probs)
+        # print('act_probs ',act_probs)
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
         # action = np.random.choice(len(act_probs), p=act_probs)
         action = np.random.normal(act_probs[0], abs(act_probs[1]))
-        print('actions: ' + str(action))
+        # print('actions: ' + str(action))
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
 
+        while env.time - start_time < 0.03:
+            pass
         # Process the simulation step:
         #   - add the current step reward to the total episode reward
         #   - append the current episode
@@ -150,7 +154,7 @@ def iterate_batches(env, net, batch_size):
             episode_reward = 0.0
             episode_steps = []
             i+=1
-            print('episode no. ', str(i))
+            print('episode no. ' +  str(i) + ' actions in step: ' + str(action_num))
             next_obs = env.reset()
             action_num = 0
 
@@ -308,8 +312,8 @@ if __name__ == '__main__':
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
-        print('action scores shape: ',str(action_scores_v.shape))
-        print('acts_v shape: ',str(acts_v.shape))
+        # print('action scores shape: ',str(action_scores_v.shape))
+        # print('acts_v shape: ',str(acts_v.shape))
         loss_v = objective(action_scores_v, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
@@ -331,7 +335,7 @@ if __name__ == '__main__':
 
         # When the reward is sufficiently large we consider the problem has
         # been solved
-        if reward_m > 1000:
+        if reward_m > 1e6:
             print("Solved!")
 
             output_dir = 'runs/video/images'

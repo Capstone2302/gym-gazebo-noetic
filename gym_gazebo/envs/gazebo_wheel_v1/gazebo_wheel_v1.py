@@ -39,19 +39,30 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
         self.x_coord_limit = 0.1524 # radius of wheel
         self.ball_vel_threshold = 30
-        self.y_coord_reset_threshold = 0.1 # when we is greater than this reset
+        self.y_coord_reset_threshold = 0.1 # when y is greater than this reset
         self.bridge = CvBridge()
         self.record = None
         self.ball_pos_gazebo_time = 0
 
         # Logging telemetry
         self.do_telemetry = True
+        self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
         if self.do_telemetry:
-            self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
             self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
             self.writer = csv.writer(self.csvfile)
             self.writer.writerow(['sim time', 'cam x','gazebo x', 'raw image received'])
             self.csvfile.close()
+
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'_callback_times.csv', 'a')
+            self.writer = csv.writer(self.csvfile)
+            self.writer.writerow(['Wheel Update Time', 'Ball Update Time', 'Time Update Time'])
+            self.csvfile.close()
+        
+        self.counter = 0
+        self.max_array_length = 3000
+        self.wheel_update_times = [0] * self.max_array_length
+        self.ball_update_times = [0] * self.max_array_length
+        self.time_update_times = [0] * self.max_array_length
 
         # Setup pub/sub for state/action
         self.joint_pub = rospy.Publisher("/wheel/rev_effort_controller/command", Float64, queue_size=1)
@@ -81,7 +92,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # State data:
         self.ball_pos_x = None
-        self.ball_pos_y = 0
+        self.ball_pos_y = None
         self.wheel_pos = None
         self.wheel_vel = None
         self.ball_vel = None
@@ -97,8 +108,17 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def get_wheel_pos_callback(self, msg):
         self.wheel_vel = msg.velocity[0]
 
+        if self.counter < self.max_array_length:
+            self.wheel_update_times[self.counter] = self.time
+            self.counter += 1
+        self.check_and_save()
+
     def get_sim_time(self, data):
         self.time = data.clock.secs + data.clock.nsecs/(1e9)
+        if self.counter < self.max_array_length:
+            self.time_update_times[self.counter] = self.time
+            self.counter += 1
+        self.check_and_save()
 
     def get_ball_pos_callback(self, msg):
 
@@ -106,12 +126,42 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         #     self.ball_pos_gazebo_time = self.time
         self.ball_pos_x = msg.pose[1].position.x
         self.ball_pos_y = msg.pose[1].position.z
+        if self.counter < self.max_array_length:
+            self.ball_update_times[self.counter] = self.time
+            self.counter += 1
+        self.check_and_save()
     
         if self.do_telemetry:
             self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
             self.writer = csv.writer(self.csvfile)
             self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
             self.csvfile.close()
+    
+    def check_and_save(self):
+        if self.counter % self.max_array_length == 0:
+            print("writing telemetry data to csv.")
+            # Pause
+            rospy.wait_for_service('/gazebo/pause_physics')
+            try:
+                self.pause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/pause_physics service call failed")
+
+            with open('callback_update_times.csv', mode='w') as file:
+                self.csvfile = open('runs/telemetry/'+self.csvFilename+'_callback_times.csv', 'a')
+                self.writer = csv.writer(self.csvfile)
+                for i in range(self.counter):
+                    self.writer.writerow([self.wheel_update_times[i], self.ball_update_times[i], self.time_update_times[i]])
+            self.counter = 0
+            self.wheel_update_times = [0] * self.max_array_length
+            self.ball_update_times = [0] * self.max_array_length
+            self.time_update_times = [0] * self.max_array_length
+            # Unpause simulation to make observations
+            rospy.wait_for_service('/gazebo/unpause_physics')
+            try:
+                self.unpause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/unpause_physics service call failed")
 
     def get_ball_pos_camera_callback(self, img_msg):
         self.raw_image = img_msg
@@ -178,8 +228,13 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def step(self, action):
         current_time = self.time
         dt = current_time - self.prev_time
+        self.ball_pos_x = None
+
+        while self.ball_pos_x is None:
+            pass
 
         x_pos = self.ball_pos_x
+        print("seconds waited to acquire ball pos: " + str(self.time-current_time))
         if dt == 0: # avoid division by zero
             x_speed = 0
         else:
@@ -196,23 +251,43 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state = [x_pos, x_speed]
 
         # Check for end condition
+        while self.ball_pos_y == None:
+            pass
         done = bool(abs(self.ball_pos_y) < self.y_coord_reset_threshold)
                 
-        reward = 1-abs(x_pos)/self.x_coord_limit*2
-        print('ball pos: ' , x_pos)
-        print('reward ',reward)
+        reward = 2-abs(x_pos)/self.x_coord_limit*2
+        # print('ball pos: ' , x_pos)
+        # print('reward ',reward)
         return state, reward, done, {}
     
     def reset(self): 
-        print("starting reset sequence")
+        print("Starting reset sequence")
         velocity_threshold = 0.01
-        Kp = 0.1  # Proportional gain
-        while self.wheel_vel == None:
-            True
-        
+        Kp = 0.05 
+        Kd = 0.1
+        prev_error = 0  
+
+        while self.wheel_vel is None:
+            pass
+        i = 0
         while abs(self.wheel_vel) > velocity_threshold:
-            effort = -Kp * self.wheel_vel
+            start_time = self.time
+            
+            error = self.wheel_vel
+            derivative = (error - prev_error)  
+            effort = -Kp * error - Kd * derivative  
             self.joint_pub.publish(effort)
+            
+            prev_error = error  
+            i+=1
+            # if error * prev_error < 0 and error < 0.1:
+            #     break
+            while self.time < start_time + 0.01:
+                pass
+            self.wheel_vel = None
+            while self.wheel_vel is None:
+                pass
+            # print("resetting wheel vel: " + str(error))
 
         self.joint_pub.publish(0.0)
 
@@ -228,8 +303,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.pose.orientation.z = 0
         state_msg.pose.orientation.w = 0
         self.prev_ball_pos = x
+        self.ball_pos_y = None
         rospy.wait_for_service('/gazebo/set_model_state')
-        print('ball reset')
+        print('ball reset, loops taken: ' + str(i))
         try:
             set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
             resp = set_state( state_msg )
