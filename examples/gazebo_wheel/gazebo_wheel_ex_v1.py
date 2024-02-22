@@ -69,6 +69,29 @@ Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
 EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
 
+def normal_negative_log_likelihood(action, mean, var):
+    """
+    Compute the negative log likelihood of the given action under the predicted normal distribution.
+
+    Args:
+        action (torch.Tensor): Tensor containing the actual actions taken in the elite episodes.
+        mean (torch.Tensor): Tensor containing the predicted mean of the normal distribution.
+        var (torch.Tensor): Tensor containing the predicted variance of the normal distribution.
+
+    Returns:
+        torch.Tensor: Negative log likelihood loss.
+    """
+    # Convert mean and var to PyTorch tensors if they are numpy arrays
+    mean = torch.tensor(mean)
+    var = torch.tensor(var)
+    
+    # Compute the negative log likelihood loss
+    nll_loss = 0.5 * (torch.log(2 * torch.tensor(3.14159265358979323846)) + torch.log(var) + ((action - mean) ** 2) / var)
+    
+    # Sum over the action dimension and take the mean over the batch dimension
+    nll_loss = torch.mean(torch.sum(nll_loss, dim=-1))
+    
+    return nll_loss
 
 def iterate_batches(env, net, batch_size):
     '''
@@ -288,7 +311,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
-    objective = nn.MSELoss()
+    objective = normal_negative_log_likelihood
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
@@ -314,7 +337,11 @@ if __name__ == '__main__':
         # the actual actions
         # print('action scores shape: ',str(action_scores_v.shape))
         # print('acts_v shape: ',str(acts_v.shape))
-        loss_v = objective(action_scores_v, acts_v)
+        act_probs = action_scores_v.data.numpy()[0]
+
+        print("Predicted action probability distributions shape: " + str(np.shape(act_probs)))
+        print("Elite actions taken shape: " + str(np.shape(action_scores_v)))
+        loss_v = objective(acts_v, act_probs[0], abs(act_probs[1]))
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
         # then adjust the weights based on the gradients using optimizer.step()
