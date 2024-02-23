@@ -69,7 +69,7 @@ Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
 EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
 
-def normal_negative_log_likelihood(action, mean, var):
+def normal_negative_log_likelihood(action, predicted, variance_magnitude_weight=0.1):
     """
     Compute the negative log likelihood of the given action under the predicted normal distribution.
 
@@ -81,15 +81,14 @@ def normal_negative_log_likelihood(action, mean, var):
     Returns:
         torch.Tensor: Negative log likelihood loss.
     """
-    # Convert mean and var to PyTorch tensors if they are numpy arrays
-    mean = torch.tensor(mean)
-    var = torch.tensor(var)
-    
+    mean = predicted[:,0]
+    var = predicted[:,1]
+    abs_var = torch.abs(var)
     # Compute the negative log likelihood loss
-    nll_loss = 0.5 * (torch.log(2 * torch.tensor(3.14159265358979323846)) + torch.log(var) + ((action - mean) ** 2) / var)
+    nll_loss = (variance_magnitude_weight*abs_var + ((action - mean) ** 2) / abs_var)
     
     # Sum over the action dimension and take the mean over the batch dimension
-    nll_loss = torch.mean(torch.sum(nll_loss, dim=-1))
+    nll_loss = torch.mean(nll_loss)
     
     return nll_loss
 
@@ -131,25 +130,23 @@ def iterate_batches(env, net, batch_size):
         # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
+        env.ball_pos_x = None
+
+        while env.ball_pos_x is None:
+            pass
+
+        print("seconds waited to acquire ball pos: " + str(env.time-start_time))
+
         # Run the NN and convert its output to probabilities by mapping the 
         # output through the SOFTMAX object.
-        act_probs_v = net(obs_v)
-
-        # Unpack the output of the NN to extract the probabilities associated
-        # with each action.
-        # 1) Extract the data field from the NN output
-        # 2) Convert the tensors from the data field into numpy array
-        # 3) Extract the first element of the network output. This is where 
-        #    the probability distribution are stored. The second element of the
-        #    network output stores the gradient functions (which we don't use) 
-        act_probs = act_probs_v.data.numpy()[0]
-        # print('act_probs ',act_probs)
+        act_probs = net(obs_v)
+        
+        act_probs_np = act_probs.detach().numpy()
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
         # action = np.random.choice(len(act_probs), p=act_probs)
-        action = np.random.normal(act_probs[0], abs(act_probs[1]))
-        # print('actions: ' + str(action))
+        action = np.random.normal(act_probs_np[0,0], abs(act_probs_np[0,1]))
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
@@ -163,7 +160,7 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action = act_probs))
+        episode_steps.append(EpisodeStep(observation=obs, action = action))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -317,36 +314,34 @@ if __name__ == '__main__':
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
     delete_output_directory('runs/video/images')
     os.makedirs('runs/video/images', exist_ok=True)
-
+    epochs = 5
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
         print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
+        for i in range(epochs):
 
-        # **** TRAINING OF THE NN ****
-        # Prepare for training the NN by zeroing the acumulated gradients.
-        optimizer.zero_grad()
+            # **** TRAINING OF THE NN ****
+            # Prepare for training the NN by zeroing the acumulated gradients.
+            optimizer.zero_grad()
 
-        # Calculate the predicted probabilities for each action in the best 
-        # episodes
-        action_scores_v = net(obs_v)
+            # Calculate the predicted probabilities for each action in the best 
+            # episodes
+            act_probs = net(obs_v)
 
-        # Calculate the cross entropy loss between the predicted actions and 
-        # the actual actions
-        # print('action scores shape: ',str(action_scores_v.shape))
-        # print('acts_v shape: ',str(acts_v.shape))
-        act_probs = action_scores_v.data.numpy()[0]
+            print(act_probs)
 
-        print("Predicted action probability distributions shape: " + str(np.shape(act_probs)))
-        print("Elite actions taken shape: " + str(np.shape(action_scores_v)))
-        loss_v = objective(acts_v, act_probs[0], abs(act_probs[1]))
+            print("Predicted action probability distributions shape: " + str(np.shape(act_probs)) + " Data type: " + str(type(act_probs)))
+            print("Elite actions taken shape: " + str(np.shape(acts_v)) + " Data type: " + str(type(acts_v)))
+            print("Elite observations taken shape: " + str(np.shape(obs_v)) + " Data type: " + str(type(obs_v)))
+            loss_v = objective(acts_v, act_probs)
 
-        # Train the NN: calculate the gradients using loss_v.backward() and 
-        # then adjust the weights based on the gradients using optimizer.step()
-        loss_v.backward()
-        optimizer.step()
+            # Train the NN: calculate the gradients using loss_v.backward() and 
+            # then adjust the weights based on the gradients using optimizer.step()
+            loss_v.backward()
+            optimizer.step()
 
         print("**** DONE TRAINING *****")
 

@@ -228,13 +228,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def step(self, action):
         current_time = self.time
         dt = current_time - self.prev_time
-        self.ball_pos_x = None
-
-        while self.ball_pos_x is None:
-            pass
-
         x_pos = self.ball_pos_x
-        print("seconds waited to acquire ball pos: " + str(self.time-current_time))
+        
         if dt == 0: # avoid division by zero
             x_speed = 0
         else:
