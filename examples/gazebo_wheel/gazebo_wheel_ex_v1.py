@@ -67,7 +67,7 @@ class Net(nn.Module):
 # Stores the total reward for the episode and the steps taken in the episode
 Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
-EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
+EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'PID_action'])
 
 
 def iterate_batches(env, net, batch_size):
@@ -101,12 +101,12 @@ def iterate_batches(env, net, batch_size):
     while True:
         action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
-        print("action num: " + str(action_num) + " obs: " + str(obs))
+        # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
         # Run the NN and convert its output to probabilities by mapping the 
         # output through the SOFTMAX object.
-        act_probs_v = sm(net(obs_v))
+        act_probs_v = (net(obs_v))
 
         # Unpack the output of the NN to extract the probabilities associated
         # with each action.
@@ -115,12 +115,12 @@ def iterate_batches(env, net, batch_size):
         # 3) Extract the first element of the network output. This is where 
         #    the probability distribution are stored. The second element of the
         #    network output stores the gradient functions (which we don't use) 
-        act_probs = act_probs_v.data.numpy()[0]
-        print('act_probs ',act_probs)
+        # act_probs = act_probs_v.data.numpy()[0]
+        # print('act_probs ',act_probs)
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        action = np.random.choice(len(act_probs), p=act_probs)
+        action = float(act_probs_v[0])
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
@@ -132,7 +132,10 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action=action))
+        # print('action: ', action)
+        PID_action=PID_control(obs)
+        print('PID: ', PID_action)
+        episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -159,7 +162,9 @@ def iterate_batches(env, net, batch_size):
         # if we are not done the old observation becomes the new observation
         # and we repeat the process
         obs = next_obs
-
+def PID_control(ball_pos_x):
+    error = ball_pos_x[0]
+    return 450*error
 
 def filter_batch(batch, percentile):
     '''
@@ -198,20 +203,21 @@ def filter_batch(batch, percentile):
     # the case add the episodes observations and action to the train_obs and 
     # train_act
     for example in batch:
-        if example.reward < reward_bound:
-            continue
+        # if example.reward < reward_bound:
+        #     continue
         # We reach here if the episode is "elite"
         # adds the observations and actions from each episode to our training
         # sets (map iterates over each step in examples.steps and passes it 
         # to the lambda function which returns either the observation or the 
         # action of the step)
+        # print(example.steps)
         train_obs.extend(map(lambda step: step.observation, example.steps))
-        train_act.extend(map(lambda step: step.action, example.steps))
+        train_act.extend(map(lambda step: step.PID_action, example.steps))
 
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
     train_obs_v = torch.FloatTensor(train_obs)
-    train_act_v = torch.LongTensor(train_act)
+    train_act_v = torch.FloatTensor(train_act)
     return train_obs_v, train_act_v, reward_bound, reward_mean
 
 # Function to handle interrupt signal
@@ -278,7 +284,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
-    objective = nn.CrossEntropyLoss()
+    objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
@@ -291,6 +297,7 @@ if __name__ == '__main__':
         print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
+        #replace acts_v with output from PID control 
 
         # **** TRAINING OF THE NN ****
         # Prepare for training the NN by zeroing the acumulated gradients.
@@ -302,6 +309,7 @@ if __name__ == '__main__':
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
+        
         loss_v = objective(action_scores_v, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 

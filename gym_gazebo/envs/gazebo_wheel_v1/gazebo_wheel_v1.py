@@ -41,7 +41,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
-        self.n_actions = 5 #should be odd number 
+        self.n_actions = 1 #should be odd number 
         self.bridge = CvBridge()
         self.record = None
         self.ball_pos_gazebo_time = 0
@@ -80,7 +80,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         #TODO add dimension for wheel position which is needed for non-circular wheels=
         low  = np.array([-self.x_threshold, -self.vel_threshold])
-        high = np.array([ self.x_threshold, self.vel_threshold, np.finfo(np.float32).max])
+        # high = np.array([ self.x_threshold, self.vel_threshold, np.finfo(np.float32).max])
+        high = np.array([ self.x_threshold])
         self.observation_space = spaces.Box(low=-high, high = high)
 
         # State data:
@@ -210,7 +211,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        print(self.time)
+        # print(self.time)
         last_time = self.time
         while self.raw_image is None:
             try:
@@ -220,8 +221,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                 pass
 
         # Pause
-        print(self.time)
-        print("Delta: " + str(self.time - last_time))
+        # print(self.time)
+        # print("Delta: " + str(self.time - last_time))
         rospy.wait_for_service('/gazebo/pause_physics')
         try:
             self.pause()
@@ -266,17 +267,17 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
 
         # Take action        
-        action = action - (self.n_actions-1)/2
-        self.wheel_vel += action*1
-        # self.wheel_vel = action*0.2
-        # print('wheel vel pub: '+str(self.wheel_vel))
+        # action = action - (self.n_actions-1)/2
+        # self.wheel_vel += action*1
+        # # self.wheel_vel = action*0.2
+        # # print('wheel vel pub: '+str(self.wheel_vel))
         print('action: ', action)
         
-        action_msg = float(self.wheel_vel)
+        action_msg = float(action)
         self.joint_pub.publish(action_msg)
 
         # Define state  
-        state = [x_pos, wheel_vel, self.ball_vel]
+        state = [x_pos]
 
         # Check for end condition
         done = (abs(self.ball_pos_x) > self.x_threshold)
@@ -288,9 +289,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # else:
         #     reward = 0
         
-        reward = 1-abs(self.ball_pos_x)/self.x_threshold*2
-        print('ball pos: ' , self.ball_pos_x)
-        print('reward ',reward)
+        reward = 1-abs(self.ball_pos_x)/self.x_threshold
+        # print('ball pos: ' , self.ball_pos_x)
+        # print('reward ',reward)
 
         # Reset data
         self.ball_pos_x = None
@@ -368,7 +369,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/pause_physics service call failed")
 
         wheel_vel = round(wheel_vel,2)
-        state = [x_pos, wheel_vel,0]
+        state = [x_pos]
         
         # Reset data
         self.ball_pos_x = None
