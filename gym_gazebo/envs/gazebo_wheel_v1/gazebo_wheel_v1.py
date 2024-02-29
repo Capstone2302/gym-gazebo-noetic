@@ -304,7 +304,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.model_name = 'ball'
         r = 0.1524
         x = np.random.uniform(-r/2,r/2)
-        x = 0.05
+        # x = 0.05
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))

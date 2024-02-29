@@ -164,7 +164,7 @@ def iterate_batches(env, net, batch_size):
         obs = next_obs
 def PID_control(ball_pos_x):
     error = ball_pos_x[0]
-    return 450*error
+    return -450*error
 
 def filter_batch(batch, percentile):
     '''

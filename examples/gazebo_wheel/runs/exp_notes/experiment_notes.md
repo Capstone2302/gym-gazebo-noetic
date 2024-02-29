@@ -211,21 +211,17 @@
 - ball spawn random, uniform
 - positions rounded
 
-#
-- train on gazebo data
-- started new model
+# Feb29-12-20-23-rlwheel
+- PID Imitation learning!!
 - RTF = 1
-- HIDDEN_SIZE = 128
+- HIDDEN_SIZE = 256
 - BATCH_SIZE = 16
 - PERCENTILE = 70
 - layers = 1
-- ** n_actions = 3 **
-- desired output = ax^2 + bx + c
+- n_actions = 1, CONITNUOUS (MSE Loss)
 - rewards [-1, 1]
 - ball spawn random, uniform
 - positions rounded
-- ** Training with position controller! **
-- timer: 10 min
 
 
 # To Try:
