@@ -6,7 +6,7 @@
 		<visual>
 			<origin xyz="-1.41488e-17 -1.56125e-17 0.2032" rpy="0 -0.0149119 0" />
 			<geometry>
-				<mesh filename="file:///home/fizzer/Documents/Capstone/catkin_ws/src/wheel_gazebo/urdf/wheel.stl"/>
+				<mesh filename="file:///home/seanghaeli/catkin_ws/src/wheel_gazebo/urdf/wheel.stl"/>
 			</geometry>
 			<material name="wheel_material">
 				<color rgba="0.615686 0.811765 0.929412 1.0"/>
@@ -15,7 +15,7 @@
 		<collision>
 			<origin xyz="-1.41488e-17 -1.56125e-17 0.2032" rpy="0 -0.0149119 0" />
 			<geometry>
-				<mesh filename="file:///home/fizzer/Documents/Capstone/catkin_ws/src/wheel_gazebo/urdf/wheel.stl"/>
+				<mesh filename="file:///home/seanghaeli/catkin_ws/src/wheel_gazebo/urdf/wheel.stl"/>
 			</geometry>
 			<material name="wheel_material">
 				<color rgba="0.615686 0.811765 0.929412 1.0"/>
@@ -32,7 +32,7 @@
 		<visual>
 			<origin xyz="0 0 2.77556e-17" rpy="1.5708 -0 0" />
 			<geometry>
-				<mesh filename="file:///home/fizzer/Documents/Capstone/catkin_ws/src/wheel_gazebo/urdf/base.stl"/>
+				<mesh filename="file:///home/seanghaeli/catkin_ws/src/wheel_gazebo/urdf/base.stl"/>
 			</geometry>
 			<material name="base_material">
 				<color rgba="0.647059 0.647059 0.647059 1.0"/>
@@ -41,7 +41,7 @@
 		<collision>
 			<origin xyz="0 0 2.77556e-17" rpy="1.5708 -0 0" />
 			<geometry>
-				<mesh filename="file:///home/fizzer/Documents/Capstone/catkin_ws/src/wheel_gazebo/urdf/base.stl"/>
+				<mesh filename="file:///home/seanghaeli/catkin_ws/src/wheel_gazebo/urdf/base.stl"/>
 			</geometry>
 			<material name="base_material">
 				<color rgba="0.647059 0.647059 0.647059 1.0"/>

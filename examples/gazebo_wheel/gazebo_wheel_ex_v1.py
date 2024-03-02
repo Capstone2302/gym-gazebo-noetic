@@ -114,25 +114,23 @@ def iterate_batches(env, net, batch_size):
         # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
+        env.ball_pos_x = None
+
+        while env.ball_pos_x is None:
+            pass
+
+        print("seconds waited to acquire ball pos: " + str(env.time-start_time))
+
         # Run the NN and convert its output to probabilities by mapping the 
         # output through the SOFTMAX object.
-        act_probs_v = net(obs_v)
-
-        # Unpack the output of the NN to extract the probabilities associated
-        # with each action.
-        # 1) Extract the data field from the NN output
-        # 2) Convert the tensors from the data field into numpy array
-        # 3) Extract the first element of the network output. This is where 
-        #    the probability distribution are stored. The second element of the
-        #    network output stores the gradient functions (which we don't use) 
-        act_probs = act_probs_v.data.numpy()[0]
-        # print('act_probs ',act_probs)
+        act_probs = net(obs_v)
+        
+        act_probs_np = act_probs.detach().numpy()
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
         # action = np.random.choice(len(act_probs), p=act_probs)
-        action = np.random.normal(act_probs[0], abs(act_probs[1]))
-        # print('actions: ' + str(action))
+        action = np.random.normal(act_probs_np[0,0], abs(act_probs_np[0,1]))
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
@@ -146,7 +144,7 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action = act_probs))
+        episode_steps.append(EpisodeStep(observation=obs, action = action))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -300,17 +298,18 @@ if __name__ == '__main__':
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
     delete_output_directory('runs/video/images')
     os.makedirs('runs/video/images', exist_ok=True)
-
+    epochs = 5
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
         print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
+        for i in range(epochs):
 
-        # **** TRAINING OF THE NN ****
-        # Prepare for training the NN by zeroing the acumulated gradients.
-        optimizer.zero_grad()
+            # **** TRAINING OF THE NN ****
+            # Prepare for training the NN by zeroing the acumulated gradients.
+            optimizer.zero_grad()
 
         # Calculate the predicted probabilities for each action in the best 
         # episodes

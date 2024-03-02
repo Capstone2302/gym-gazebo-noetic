@@ -33,7 +33,7 @@ from datetime import datetime
 class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def __init__(self):
         # Launch the simulation with the given launchfile name
-        gazebo_env.GazeboEnv.__init__(self, "/home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
+        gazebo_env.GazeboEnv.__init__(self, "/home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/launch/urdf.launch")
 
         # Define end conditions
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
@@ -227,13 +227,8 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def step(self, action):
         current_time = self.time
         dt = current_time - self.prev_time
-        self.ball_pos_x = None
-
-        while self.ball_pos_x is None:
-            pass
-
         x_pos = self.ball_pos_x
-        print("seconds waited to acquire ball pos: " + str(self.time-current_time))
+        
         if dt == 0: # avoid division by zero
             x_speed = 0
         else:

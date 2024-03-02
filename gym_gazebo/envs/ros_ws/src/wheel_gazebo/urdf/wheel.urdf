@@ -3,7 +3,7 @@
         <visual>
             <origin xyz="-2.77556e-17 1.9082e-17 0.2032" rpy="0 -0 0" />
             <geometry>
-j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl" />
+j                <mesh filename="file:///home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl" />
             </geometry>
             <material name="base_material">
                 <color rgba="0.647059 0.647059 0.647059 1.0" />
@@ -12,7 +12,7 @@ j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gaze
         <collision>
             <origin xyz="-2.77556e-17 1.9082e-17 0.2032" rpy="0 -0 0" />
             <geometry>
-                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl" />
+                <mesh filename="file:///home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/base.stl" />
             </geometry>
             <material name="base_material">
                 <color rgba="0.647059 0.647059 0.647059 1.0" />
@@ -29,7 +29,7 @@ j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gaze
         <visual>
             <origin xyz="2.77556e-17 0 0" rpy="1.5708 -0 1.15854e-17" />
             <geometry>
-                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl" />
+                <mesh filename="file:///home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl" />
             </geometry>
             <material name="wheel_material">
                 <color rgba="0.615686 0.811765 0.929412 1.0" />
@@ -38,7 +38,7 @@ j                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gaze
         <collision>
             <origin xyz="2.77556e-17 0 0" rpy="1.5708 -0 1.15854e-17" />
             <geometry>
-                <mesh filename="file:///home/fizzer/Documents/Capstone/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl" />
+                <mesh filename="file:///home/seanghaeli/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/wheel.stl" />
             </geometry>
             <material name="wheel_material">
                 <color rgba="0.615686 0.811765 0.929412 1.0" />
