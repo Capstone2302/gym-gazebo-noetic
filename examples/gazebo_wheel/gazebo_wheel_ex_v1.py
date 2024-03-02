@@ -32,7 +32,7 @@ import shutil
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
 BATCH_SIZE = 16   # number of episodes to play for every network iteration
-PERCENTILE = 70   # only the episodes with the top 30% total reward are used 
+PERCENTILE = 75         # only the episodes with the top 30% total reward are used 
                   # for training
 
 class Net(nn.Module):
@@ -68,6 +68,12 @@ class Net(nn.Module):
 Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
 EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
+
+def PPOGaussianLoss(prediction,target):
+    sigma = torch.abs(prediction[:, 1].view(-1, 1))
+    mu = prediction[:, 0].view(-1, 1)
+    variance_reduction_weight = 0.1
+    return torch.mean(variance_reduction_weight * sigma + (target - mu)**2/sigma)
 
 
 def iterate_batches(env, net, batch_size):
@@ -150,11 +156,11 @@ def iterate_batches(env, net, batch_size):
         # We then reset our variables and environment in preparation for the 
         # next episode.
         if is_done:
+            print('episode no. ' +  str(i) + ' actions in step: ' + str(action_num) + ' rewards in step: ' + str(episode_reward))
             batch.append(Episode(reward=episode_reward, steps=episode_steps))
             episode_reward = 0.0
             episode_steps = []
             i+=1
-            print('episode no. ' +  str(i) + ' actions in step: ' + str(action_num))
             next_obs = env.reset()
             action_num = 0
 
@@ -288,7 +294,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
-    objective = nn.MSELoss()
+    objective = PPOGaussianLoss
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
     writer = SummaryWriter(logdir='runs/tensorboard/'+folderName,comment="-wheel")
@@ -308,13 +314,13 @@ if __name__ == '__main__':
 
         # Calculate the predicted probabilities for each action in the best 
         # episodes
-        action_scores_v = net(obs_v)
+        predicted_normal = net(obs_v)
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
         # print('action scores shape: ',str(action_scores_v.shape))
         # print('acts_v shape: ',str(acts_v.shape))
-        loss_v = objective(action_scores_v, acts_v)
+        loss_v = objective(predicted_normal, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
         # then adjust the weights based on the gradients using optimizer.step()

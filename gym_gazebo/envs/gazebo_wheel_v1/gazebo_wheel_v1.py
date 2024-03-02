@@ -59,7 +59,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             self.csvfile.close()
         
         self.counter = 0
-        self.max_array_length = 3000
+        self.max_array_length = 30000
         self.wheel_update_times = [0] * self.max_array_length
         self.ball_update_times = [0] * self.max_array_length
         self.time_update_times = [0] * self.max_array_length
@@ -138,7 +138,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             self.csvfile.close()
     
     def check_and_save(self):
-        if self.counter % self.max_array_length == 0:
+        if self.do_telemetry and self.counter % self.max_array_length == 0:
             print("writing telemetry data to csv.")
             # Pause
             rospy.wait_for_service('/gazebo/pause_physics')
@@ -147,11 +147,10 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             except (rospy.ServiceException) as e:
                 print ("/gazebo/pause_physics service call failed")
 
-            with open('callback_update_times.csv', mode='w') as file:
-                self.csvfile = open('runs/telemetry/'+self.csvFilename+'_callback_times.csv', 'a')
-                self.writer = csv.writer(self.csvfile)
-                for i in range(self.counter):
-                    self.writer.writerow([self.wheel_update_times[i], self.ball_update_times[i], self.time_update_times[i]])
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'_callback_times.csv', 'a')
+            self.writer = csv.writer(self.csvfile)
+            for i in range(self.counter):
+                self.writer.writerow([self.wheel_update_times[i], self.ball_update_times[i], self.time_update_times[i]])
             self.counter = 0
             self.wheel_update_times = [0] * self.max_array_length
             self.ball_update_times = [0] * self.max_array_length
@@ -255,7 +254,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             pass
         done = bool(abs(self.ball_pos_y) < self.y_coord_reset_threshold)
                 
-        reward = 2-abs(x_pos)/self.x_coord_limit*2
+        reward = 1 if np.abs(x_pos) < self.x_coord_limit/8 else 0
         # print('ball pos: ' , x_pos)
         # print('reward ',reward)
         return state, reward, done, {}
@@ -264,7 +263,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         print("Starting reset sequence")
         velocity_threshold = 0.01
         Kp = 0.05 
-        Kd = 0.1
+        Kd = 0.005
         prev_error = 0  
 
         while self.wheel_vel is None:
@@ -294,7 +293,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg = ModelState()
         state_msg.model_name = 'ball'
         r = self.x_coord_limit
-        x = np.random.uniform(-r/2,r/2)
+        x = -r/8
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
