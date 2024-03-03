@@ -162,9 +162,21 @@ def iterate_batches(env, net, batch_size):
         # if we are not done the old observation becomes the new observation
         # and we repeat the process
         obs = next_obs
-def PID_control(ball_pos_x):
-    error = ball_pos_x[0]
-    return -450*error
+def PID_control(obs):
+    error = obs[0]
+    prev_err = obs[1]
+    dt = obs[2]
+    derivative = (error - prev_err) / dt
+
+    # Update previous error and time for next iteration
+    prev_err = error
+
+    # Calculate control output with PID terms
+    proportional = (2.3) * error
+    derivative = (1) * derivative
+
+    return -(proportional + derivative)
+
 
 def filter_batch(batch, percentile):
     '''

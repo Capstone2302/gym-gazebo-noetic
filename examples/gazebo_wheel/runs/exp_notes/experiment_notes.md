@@ -218,10 +218,39 @@
 - BATCH_SIZE = 16
 - PERCENTILE = 70
 - layers = 1
-- n_actions = 1, CONITNUOUS (MSE Loss)
+- n_actions = 1, continuous (MSE Loss)
 - rewards [-1, 1]
 - ball spawn random, uniform
 - positions rounded
+- Controller type: JointVelocityController
+
+# Feb29-12-20--rlwheel
+- PID Imitation learning!!
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- Controller type: JointVelocityController
+
+
+# 
+- PID Imitation learning!!
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- Controller type: EffortJointController
+
 
 
 # To Try:

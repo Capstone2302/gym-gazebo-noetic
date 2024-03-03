@@ -81,7 +81,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         #TODO add dimension for wheel position which is needed for non-circular wheels=
         low  = np.array([-self.x_threshold, -self.vel_threshold])
         # high = np.array([ self.x_threshold, self.vel_threshold, np.finfo(np.float32).max])
-        high = np.array([ self.x_threshold])
+        high = np.array([ self.x_threshold, self.x_threshold, 1])
         self.observation_space = spaces.Box(low=-high, high = high)
 
         # State data:
@@ -277,7 +277,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.joint_pub.publish(action_msg)
 
         # Define state  
-        state = [x_pos]
+        state = [x_pos, self.x_prev, dt]
 
         # Check for end condition
         done = (abs(self.ball_pos_x) > self.x_threshold)
@@ -326,7 +326,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # Reset world
         rospy.wait_for_service('/gazebo/set_link_state')
         # self.set_link(LinkState(link_name='wheel')) # WHY NO WORK
-        self.joint_pub.publish(float(0)) #vel
         
         # Unpause simulation to make observation
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -335,7 +334,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        time.sleep(0.5)
+        while(self.wheel_vel is None):
+            a = 1
+        while((abs(self.wheel_vel)) > 0.05):
+            self.joint_pub.publish(-self.wheel_vel/10)
+
         # Pause simulation
         rospy.wait_for_service('/gazebo/pause_physics')
         try:
@@ -369,7 +372,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print ("/gazebo/pause_physics service call failed")
 
         wheel_vel = round(wheel_vel,2)
-        state = [x_pos]
+        state = [x_pos, self.x_prev, 0.03]
         
         # Reset data
         self.ball_pos_x = None
