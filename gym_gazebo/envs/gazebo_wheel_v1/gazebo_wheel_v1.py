@@ -44,10 +44,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.n_actions = 1 #should be odd number 
         self.bridge = CvBridge()
         self.record = None
-        self.ball_pos_gazebo_time = 0
 
         # Logging telemetry
-        self.do_telemetry = True
+        self.do_telemetry = False
         if self.do_telemetry:
             self.csvFilename = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
             self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'w', newline = '')
@@ -59,7 +58,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.joint_pub = rospy.Publisher("/wheel/rev_position_controller/command", Float64, queue_size=1)
         self.wheel_sub = rospy.Subscriber('/wheel/joint_states', JointState, self.get_wheel_pos_callback)
         self.ball_sub = rospy.Subscriber("/gazebo/model_states", ModelStates, self.get_ball_pos_callback)
-        # self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback, queue_size=1)
+        self.ball_sub_cam = rospy.Subscriber("/wheel/camera1/image_raw", Image, self.get_ball_pos_camera_callback, queue_size=1)
         self.sim_time_sub = rospy.Subscriber("/clock", Clock, self.get_sim_time)
         # Gazebo specific services to start/stop its behavior and
         # facilitate the overall RL environment
@@ -124,16 +123,14 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
     def get_ball_pos_callback(self, msg):
 
-        # if self.time - self.ball_pos_gazebo_time >= 35e-3:
-        #     self.ball_pos_gazebo_time = self.time
-            self.ball_pos_x = msg.pose[1].position.x
-            self.ball_pos_y = msg.pose[1].position.z
-        
-            if self.do_telemetry:
-                self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
-                self.writer = csv.writer(self.csvfile)
-                self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
-                self.csvfile.close()
+        self.ball_pos_x = msg.pose[1].position.x
+        self.ball_pos_y = msg.pose[1].position.z
+    
+        if self.do_telemetry:
+            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
+            self.writer = csv.writer(self.csvfile)
+            self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
+            self.csvfile.close()
 
     def get_ball_pos_camera_callback(self, img_msg):
         self.raw_image = img_msg
@@ -243,7 +240,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             x_pos = self.ball_pos_x
             # wheel_pos = self.wheel_pos
             wheel_vel = (self.wheel_vel)
-            ball_pos_sim_time = self.ball_pos_gazebo_time
             
         # Pause
         rospy.wait_for_service('/gazebo/pause_physics')
@@ -280,7 +276,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state = [x_pos, self.x_prev, dt]
 
         # Check for end condition
-        done = (abs(self.ball_pos_x) > self.x_threshold)
+        done = (abs(self.ball_pos_x) > self.x_threshold) or self.ball_pos_y < 0.2
         
         done = bool(done)
 
@@ -304,7 +300,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.model_name = 'ball'
         r = 0.1524
         x = np.random.uniform(-r/2,r/2)
-        # x = 0.05
+        x = 0.0
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))

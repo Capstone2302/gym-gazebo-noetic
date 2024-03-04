@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    # net.load_state_dict(torch.load('runs/model/Feb02-20-32-31-rlwheel.pth'))
+    net.load_state_dict(torch.load('runs/model/Mar02-20-11-56-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 

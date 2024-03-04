@@ -238,7 +238,7 @@
 - Controller type: JointVelocityController
 
 
-# 
+# Mar02-20-11-56-rlwheel
 - PID Imitation learning!!
 - RTF = 1
 - HIDDEN_SIZE = 256
@@ -251,6 +251,21 @@
 - positions rounded
 - Controller type: EffortJointController
 
+# Mar03-15-12-54-rlwheel
+# Mar03-15-42-28-rlwheel
+# Mar03-16-13-26-rlwheel
+- PID Imitation learning!!
+- model started from Mar02-20-11-56-rlwheel
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- layers = 1
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- Controller type: EffortJointController
 
 
 # To Try:

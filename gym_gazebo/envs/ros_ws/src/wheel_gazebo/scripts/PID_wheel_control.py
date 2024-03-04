@@ -91,7 +91,7 @@ class CommandToJointState:
             # Calculate control output with PID terms
             proportional = self.Kp * error
             integral = self.Ki * (self.integral + error * dt)
-            print('integral: ', str(integral))
+            # print('integral: ', str(integral))
             derivative = self.Kd * derivative
             self.integral = integral  # Update integral term for next iteration
 
