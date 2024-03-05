@@ -266,7 +266,96 @@
 - ball spawn random, uniform
 - positions rounded
 - Controller type: EffortJointController
+- noticed plateauting
 
+# Mar03-16-41-16-rlwheel
+- PID Imitation learning!!
+- new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- **layers = 2
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- Controller type: EffortJointController
+
+# Mar04-08-49-34-rlwheel
+- PID Imitation learning!!
+- new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- **layers = 3
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn random, uniform
+- positions rounded
+- Controller type: EffortJointController
+
+
+# Mar04-11-44-03-rlwheel
+- PID Imitation learning!!
+- x_threshold = 0.08 (changed from 0.2)
+- new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- PERCENTILE = 70
+- **layers = 3
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn: centered
+- positions rounded
+- Controller type: EffortJointController
+
+# Mar04-15-31-14-rlwheel
+- PID Imitation learning!!
+- x_threshold = 0.02
+- new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- **layers = 4
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn: centered
+- Controller type: EffortJointController
+
+# Mar04-19-33-49-rlwheel
+- decreased x reset to train only near equilibrium point (abs(x) < 0.02)
+- scaled neural output and PID by 100x to increase MSE
+- getting more garbage
+
+# Mar04-20-32-32-rlwheel
+- PID Imitation learning!!
+- x_threshold = 0.02
+- model starting from Mar04-18-50-22-rlwheel
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- **layers = 4
+- n_actions = 1, continuous (MSE Loss)
+- rewards [-1, 1]
+- ball spawn: centered
+- Controller type: EffortJointController
+
+# Mar05-10-24-42-rlwheel
+- bux fixed
+- PID Imitation learning!!
+- x_threshold = 0.2
+- model starting from Mar04-18-50-22-rlwheel
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- **layers = 4
+- n_actions = 1, continuous (MSE Loss)
+- rewards [0, 1], centered
+- ball spawn: centered
+- Controller type: EffortJointController
 
 # To Try:
 - try more action

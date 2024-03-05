@@ -53,8 +53,12 @@ class Net(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.ReLU(),
-            # nn.Linear(hidden_size, hidden_size),
-            # nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
             nn.Linear(hidden_size, n_actions)
         )
 
@@ -134,7 +138,9 @@ def iterate_batches(env, net, batch_size):
         # steps for the current episode
         # print('action: ', action)
         PID_action=PID_control(obs)
+        print("obs: ", obs)
         print('PID: ', PID_action)
+        print('action: ', action, '\n')
         episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
 
         # When we are done with this episode we will save the list of steps in 
@@ -167,9 +173,6 @@ def PID_control(obs):
     prev_err = obs[1]
     dt = obs[2]
     derivative = (error - prev_err) / dt
-
-    # Update previous error and time for next iteration
-    prev_err = error
 
     # Calculate control output with PID terms
     proportional = (2.3) * error
@@ -291,7 +294,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar02-20-11-56-rlwheel.pth'))
+    net.load_state_dict(torch.load('runs/model/Mar04-18-50-22-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 

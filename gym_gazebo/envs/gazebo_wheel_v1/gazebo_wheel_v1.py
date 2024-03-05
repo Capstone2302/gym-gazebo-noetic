@@ -37,7 +37,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
 
         # Define end conditions TODO
         # self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 0.2 # when when x is farther than THRESHOLD pixels from the center_pixel, reset
+        self.x_threshold = 0.08 # when when x is farther than THRESHOLD pixels from the center_pixel, reset
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
@@ -201,6 +201,11 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         wheel_vel = None
         self.raw_image = None
 
+        action_msg = float(action)
+        self.joint_pub.publish(action_msg)
+        # print(self.time)
+        last_time = self.time
+
         # Unpause simulation to make observations
         rospy.wait_for_service('/gazebo/unpause_physics')
         try:
@@ -208,8 +213,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         except (rospy.ServiceException) as e:
             print ("/gazebo/unpause_physics service call failed")
 
-        # print(self.time)
-        last_time = self.time
+
         while self.raw_image is None:
             try:
                 self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
@@ -229,54 +233,27 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         # Process data
         self.process_img(self.raw_image)
 
-        # Unpause simulation to make observations
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
+        x_pos = self.ball_pos_x
 
-        while x_pos is None or wheel_vel is None:
-            x_pos = self.ball_pos_x
-            # wheel_pos = self.wheel_pos
-            wheel_vel = (self.wheel_vel)
-            
-        # Pause
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
-        
         t = self.time
         dt = t - last_time
-        #self.prev_time = t
+        # print("dt: ", dt)
 
         dx = x_pos           - self.x_prev
         dy = self.ball_pos_y - self.y_prev
-        self.x_prev = x_pos
-        self.y_prev = self.ball_pos_y
 
         self.ball_vel = round(dx/dt,2)
 
-        wheel_vel = round(wheel_vel, 2)
-
-
-        # Take action        
-        # action = action - (self.n_actions-1)/2
-        # self.wheel_vel += action*1
-        # # self.wheel_vel = action*0.2
-        # # print('wheel vel pub: '+str(self.wheel_vel))
-        print('action: ', action)
-        
-        action_msg = float(action)
-        self.joint_pub.publish(action_msg)
+        # wheel_vel = round(wheel_vel, 2)
 
         # Define state  
         state = [x_pos, self.x_prev, dt]
 
+        self.x_prev = x_pos
+        self.y_prev = self.ball_pos_y
+        
         # Check for end condition
-        done = (abs(self.ball_pos_x) > self.x_threshold) or self.ball_pos_y < 0.2
+        done = (abs(self.ball_pos_x) > 0.2) or self.ball_pos_y < 0.2
         
         done = bool(done)
 
