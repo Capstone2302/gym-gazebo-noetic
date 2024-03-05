@@ -344,16 +344,32 @@
 - Controller type: EffortJointController
 
 # Mar05-10-24-42-rlwheel
-- bux fixed
+# Mar05-15-22-47-rlwheel
+- bug fixed
 - PID Imitation learning!!
 - x_threshold = 0.2
 - model starting from Mar04-18-50-22-rlwheel
+- model starting from Mar05-10-24-42-rlwheel
 - RTF = 1
 - HIDDEN_SIZE = 256
 - BATCH_SIZE = 16
 - **layers = 4
 - n_actions = 1, continuous (MSE Loss)
 - rewards [0, 1], centered
+- ball spawn: centered
+- Controller type: EffortJointController
+- very good performance
+
+# 
+- PID Imitation learning!!
+- x_threshold = 0.2
+- new model
+- RTF = 1
+- HIDDEN_SIZE = 256
+- BATCH_SIZE = 16
+- **layers = 4
+- n_actions = 1, continuous (MSE Loss)
+- reward = 1-abs(self.ball_pos_x)/self.x_threshold
 - ball spawn: centered
 - Controller type: EffortJointController
 

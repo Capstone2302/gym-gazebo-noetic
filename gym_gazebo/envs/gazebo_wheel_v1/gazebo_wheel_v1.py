@@ -221,6 +221,9 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                 print("failed image acquistion")
                 pass
 
+        # Process data
+        self.process_img(self.raw_image)
+
         # Pause
         # print(self.time)
         # print("Delta: " + str(self.time - last_time))
@@ -229,9 +232,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             self.pause()
         except (rospy.ServiceException) as e:
             print ("/gazebo/pause_physics service call failed")
-
-        # Process data
-        self.process_img(self.raw_image)
 
         x_pos = self.ball_pos_x
 

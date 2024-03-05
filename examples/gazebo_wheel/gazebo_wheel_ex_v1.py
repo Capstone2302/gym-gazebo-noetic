@@ -101,9 +101,9 @@ def iterate_batches(env, net, batch_size):
 
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
-    action_num = 0
+    # action_num = 0
     while True:
-        action_num += 1
+        # action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
         # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
@@ -138,9 +138,9 @@ def iterate_batches(env, net, batch_size):
         # steps for the current episode
         # print('action: ', action)
         PID_action=PID_control(obs)
-        print("obs: ", obs)
-        print('PID: ', PID_action)
-        print('action: ', action, '\n')
+        # print("obs: ", obs)
+        # print('PID: ', PID_action)
+        # print('action: ', action, '\n')
         episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
 
         # When we are done with this episode we will save the list of steps in 
@@ -152,6 +152,7 @@ def iterate_batches(env, net, batch_size):
         # next episode.
         if is_done:
             batch.append(Episode(reward=episode_reward, steps=episode_steps))
+            print("n actions: ", len(episode_steps))
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
@@ -294,7 +295,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar04-18-50-22-rlwheel.pth'))
+    net.load_state_dict(torch.load('runs/model/Mar05-10-24-42-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
