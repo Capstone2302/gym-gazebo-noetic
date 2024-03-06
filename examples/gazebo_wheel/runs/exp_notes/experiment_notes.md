@@ -360,9 +360,10 @@
 - Controller type: EffortJointController
 - very good performance
 
-# 
+# Mar05-16-40-45-rlwheel
 - PID Imitation learning!!
-- x_threshold = 0.2
+- NOW USING IMAGE DATA FOR X POSIITON INSTEAD OF GAZEBO
+- x_threshold = 50 (but reset triggered at 20)
 - new model
 - RTF = 1
 - HIDDEN_SIZE = 256
@@ -372,6 +373,19 @@
 - reward = 1-abs(self.ball_pos_x)/self.x_threshold
 - ball spawn: centered
 - Controller type: EffortJointController
+
+# Mar05-20-19-53-rlwheel
+- continuing training off Mar05-16-40-45-rlwheel
+
+
+# Mar05-20-32-09-rlwheel
+- continuing training off Mar05-16-40-45-rlwheel
+- neede to add like self.x_prev = 0 to reset() function
+
+# Mar05-20-51-23-rlwheel
+- continuing training off Mar05-20-32-09-rlwheel
+- added line to reset self.raw_image = None
+- not much improvmenet on loss 
 
 # To Try:
 - try more action
