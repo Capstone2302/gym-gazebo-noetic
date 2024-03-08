@@ -378,7 +378,7 @@
 - continuing training off Mar05-16-40-45-rlwheel
 
 
-# Mar05-20-32-09-rlwheel
+# Mar05-20-32-09-rlwheel *** VERY GOOD PERFORMANCE with MAR 7 Code
 - continuing training off Mar05-16-40-45-rlwheel
 - neede to add like self.x_prev = 0 to reset() function
 
@@ -386,6 +386,15 @@
 - continuing training off Mar05-20-32-09-rlwheel
 - added line to reset self.raw_image = None
 - not much improvmenet on loss 
+
+# Mar07-15-37-13-rlwheel
+- continuing training off Mar05-20-32-09-rlwheel
+- some refactoring to fix reset issues
+- seeing good performance, but mostly on left side of wheel
+
+# Mar07-15-56-28-rlwheel
+- continuing training off Mar07-15-37-13-rlwheel
+- drop ball more on right side
 
 # To Try:
 - try more action

@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar05-16-40-45-rlwheel.pth'))
+    net.load_state_dict(torch.load('runs/model/Mar07-15-56-28-rlwheel.pth'))
 
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.

@@ -121,16 +121,16 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
     def get_sim_time(self, data):
         self.time = data.clock.secs + data.clock.nsecs/(1e9)
 
-    def get_ball_pos_callback(self, msg):
+    # def get_ball_pos_callback(self, msg):
 
-        self.ball_pos_x = msg.pose[1].position.x
-        self.ball_pos_y = msg.pose[1].position.z
+    #     self.ball_pos_x = msg.pose[1].position.x
+    #     self.ball_pos_y = msg.pose[1].position.z
     
-        if self.do_telemetry:
-            self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
-            self.writer = csv.writer(self.csvfile)
-            self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
-            self.csvfile.close()
+    #     if self.do_telemetry:
+    #         self.csvfile = open('runs/telemetry/'+self.csvFilename+'.csv', 'a')
+    #         self.writer = csv.writer(self.csvfile)
+    #         self.writer.writerow([str(self.time), "", str(self.ball_pos_x), ""])
+    #         self.csvfile.close()
 
     def get_ball_pos_camera_callback(self, img_msg):
         self.raw_image = img_msg
@@ -200,21 +200,23 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         wheel_pos = None
         wheel_vel = None
         self.raw_image = None
+        self.ball_pos_x = None
 
         action_msg = float(action)
         self.joint_pub.publish(action_msg)
         # print(self.time)
         last_time = self.time
 
-        # Unpause simulation to make observations
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
-
 
         while (self.raw_image is None) or (self.ball_pos_x is None):
+
+            # Unpause simulation to make observations
+            rospy.wait_for_service('/gazebo/unpause_physics')
+            try:
+                self.unpause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/unpause_physics service call failed")
+
             try:
                 self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
 
@@ -224,17 +226,13 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
                 print("failed image acquistion")
                 pass
 
-
-
-        # Pause
-        # print(self.time)
-        # print("Delta: " + str(self.time - last_time))
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
-
+            # Pause
+            rospy.wait_for_service('/gazebo/pause_physics')
+            try:
+                self.pause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/pause_physics service call failed")
+            
         x_pos = self.ball_pos_x
 
         t = self.time
@@ -255,14 +253,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.y_prev = self.ball_pos_y
         
         # Check for end condition
-        done = (abs(self.ball_pos_x) > 20)
-        
-        done = bool(done)
-
-        # if not done:
-        #     reward = 1 
-        # else:
-        #     reward = 0
+        done = bool(abs(self.ball_pos_x) > 20)
         
         reward = 1-abs(self.ball_pos_x)/self.x_threshold
         # print('ball pos: ' , self.ball_pos_x)
@@ -279,7 +270,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         state_msg.model_name = 'ball'
         r = 0.1524
         x = np.random.uniform(-r/2,r/2)
-        x = 0.0
+        x = -0.02
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
         state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
@@ -296,7 +287,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
             print( "Service call failed")
     
     def reset(self): 
-        self.raw_image = None
         print("**** RESETTING *****")
 
         # Reset world
@@ -324,24 +314,34 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         
         self.reset_ball_pos()
 
-        # Unpause simulation to make observation
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
+        self.ball_pos_x = None
+        self.raw_image = None
+        while (self.raw_image is None) or (self.ball_pos_x is None):
 
-        while (self.raw_image is None):
-            x_pos = self.ball_pos_x
+            # Unpause simulation to make observations
+            rospy.wait_for_service('/gazebo/unpause_physics')
+            try:
+                self.unpause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/unpause_physics service call failed")
+
+            try:
+                self.raw_image = rospy.wait_for_message('/wheel/camera1/image_raw', Image, timeout=1)
+
+                # Process data
+                self.process_img(self.raw_image)
+            except:
+                print("failed image acquistion")
+                pass
+
+            # Pause
+            rospy.wait_for_service('/gazebo/pause_physics')
+            try:
+                self.pause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/pause_physics service call failed")
             
-        # Pause simulation
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
-            
-        state = [0,0,0.01]
+        state = [self.ball_pos_x ,self.ball_pos_x ,0.01]
         self.x_prev = 0
         # Reset data
         self.ball_pos_x = None
