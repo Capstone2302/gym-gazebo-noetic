@@ -53,8 +53,12 @@ class Net(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.ReLU(),
-            # nn.Linear(hidden_size, hidden_size),
-            # nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
             nn.Linear(hidden_size, n_actions)
         )
 
@@ -67,7 +71,7 @@ class Net(nn.Module):
 # Stores the total reward for the episode and the steps taken in the episode
 Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
-EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'PID_action'])
+EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
 
 
 def iterate_batches(env, net, batch_size):
@@ -133,9 +137,9 @@ def iterate_batches(env, net, batch_size):
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
         # print('action: ', action)
-        PID_action=PID_control(obs)
-        print('PID: ', PID_action)
-        episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
+        print("obs: ", obs)
+        print('action: ', action, '\n')
+        episode_steps.append(EpisodeStep(observation=obs, action=action))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -146,9 +150,11 @@ def iterate_batches(env, net, batch_size):
         # next episode.
         if is_done:
             batch.append(Episode(reward=episode_reward, steps=episode_steps))
+            print("n actions: ", len(episode_steps))
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
+            # cv2.waitKey(0)
             action_num = 0
 
             # If we accumulated enough episodes in the batch of episodes we 
@@ -162,20 +168,7 @@ def iterate_batches(env, net, batch_size):
         # if we are not done the old observation becomes the new observation
         # and we repeat the process
         obs = next_obs
-def PID_control(obs):
-    error = obs[0]
-    prev_err = obs[1]
-    dt = obs[2]
-    derivative = (error - prev_err) / dt
-
-    # Update previous error and time for next iteration
-    prev_err = error
-
-    # Calculate control output with PID terms
-    proportional = (2.3) * error
-    derivative = (1) * derivative
-
-    return -(proportional + derivative)
+        
 
 
 def filter_batch(batch, percentile):
@@ -215,8 +208,8 @@ def filter_batch(batch, percentile):
     # the case add the episodes observations and action to the train_obs and 
     # train_act
     for example in batch:
-        # if example.reward < reward_bound:
-        #     continue
+        if example.reward < reward_bound:
+            continue
         # We reach here if the episode is "elite"
         # adds the observations and actions from each episode to our training
         # sets (map iterates over each step in examples.steps and passes it 
@@ -224,7 +217,7 @@ def filter_batch(batch, percentile):
         # action of the step)
         # print(example.steps)
         train_obs.extend(map(lambda step: step.observation, example.steps))
-        train_act.extend(map(lambda step: step.PID_action, example.steps))
+        train_act.extend(map(lambda step: step.action, example.steps))
 
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
@@ -291,7 +284,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar02-20-11-56-rlwheel.pth'))
+    # net.load_state_dict(torch.load('runs/model/Mar02-20-11-56-rlwheel.pth'))
 
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(signum, frame, folderName, net, record))
     # PyTorch module that combines softmax and cross-entropy loss in one 
@@ -309,7 +302,6 @@ if __name__ == '__main__':
         print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
-        #replace acts_v with output from PID control 
 
         # **** TRAINING OF THE NN ****
         # Prepare for training the NN by zeroing the acumulated gradients.
@@ -317,11 +309,13 @@ if __name__ == '__main__':
 
         # Calculate the predicted probabilities for each action in the best 
         # episodes
-        action_scores_v = net(obs_v)
+        action_scores_v = torch.squeeze(net(obs_v))
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
         
+        # print("acts_v shape: ", acts_v.shape)
+        # print("action_scores_v.shape: ",action_scores_v.shape)
         loss_v = objective(action_scores_v, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
