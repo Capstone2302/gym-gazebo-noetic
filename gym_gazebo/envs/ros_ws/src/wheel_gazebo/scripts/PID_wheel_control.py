@@ -28,7 +28,6 @@ class CommandToJointState:
         self.Kp = 1
         self.Ki = 0
         self.Kd = 1
-        self.zeroed = np.pi*((1/4)-(1/32)+(1/128))
         self.prev_err = 0
         self.dt = 1
         self.time = 0
@@ -40,7 +39,7 @@ class CommandToJointState:
         self.integral = 0
         self.prev_err=0
         self.joint_name = 'rev'
-        self.user_input_wheel_pos = self.zeroed
+        self.user_input_wheel_pos = 0
         self.joint_state = JointState()
         self.joint_state.name.append(self.joint_name)
         self.joint_state.position.append(0.0)
@@ -144,7 +143,7 @@ class CommandToJointState:
             # print('wheel vel published: '+ str(self.wheel_write))
 
     def get_wheel_callback(self, msg):
-        self.wheel_pos = msg.position[0]%(2*np.pi) - self.zeroed
+        self.wheel_pos = msg.position[0]%(2*np.pi)
         self.wheel_vel = msg.velocity[0]
         # self.publish_input_position()
         # print("wheel pos = ", str(self.wheel_pos))
@@ -156,7 +155,7 @@ class CommandToJointState:
         msg = SetModelConfigurationRequest()
         msg.model_name = 'wheel'
         msg.joint_names = ['rev']
-        msg.joint_positions = [float(self.zeroed)]
+        msg.joint_positions = [float(0)]
 
         rospy.wait_for_service('/gazebo/set_model_configuration')
         try:
@@ -207,7 +206,7 @@ class CommandToJointState:
         msg.joint_names = ['rev']
         # Get user input
 
-        msg.joint_positions = [float(self.user_input_wheel_pos + self.zeroed)]
+        msg.joint_positions = [float(self.user_input_wheel_pos)]
         rospy.wait_for_service('/gazebo/set_model_configuration')
         try:
             set_state = rospy.ServiceProxy('/gazebo/set_model_configuration', SetModelConfiguration)

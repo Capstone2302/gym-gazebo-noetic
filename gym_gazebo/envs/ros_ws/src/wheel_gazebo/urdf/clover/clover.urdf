@@ -19,7 +19,7 @@
             </material>
         </collision>
         <inertial>
-            <origin xyz="-1.56803e-17 1.64051e-18 0.0335895" rpy="0 0 0"/>
+            <origin xyz="-1.62536e-17 1.72087e-18 0.0335895" rpy="0 0 0"/>
             <mass value="11.195" />
             <inertia ixx="0.0514132" ixy="0" ixz="0" iyy="0.102411" iyz="0" izz="0.0926616" />
         </inertial>
@@ -27,7 +27,7 @@
 
     <link name="wheel">
         <visual>
-            <origin xyz="2.77556e-17 0 0" rpy="1.5708 -0 1.15854e-17" />
+            <origin xyz="0 8.74092e-19 0" rpy="1.5708 -3.18704e-39 3.41621e-44" />
             <geometry>
                 <mesh filename="file:///home/mackenzie/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/clover/wheel.stl"/>
             </geometry>
@@ -36,7 +36,7 @@
             </material>
         </visual>
         <collision>
-            <origin xyz="2.77556e-17 0 0" rpy="1.5708 -0 1.15854e-17" />
+            <origin xyz="0 8.74092e-19 0" rpy="1.5708 -3.18704e-39 3.41621e-44" />
             <geometry>
                 <mesh filename="file:///home/mackenzie/gym-gazebo-noetic/gym_gazebo/envs/ros_ws/src/wheel_gazebo/urdf/clover/wheel.stl"/>
             </geometry>
@@ -45,15 +45,14 @@
             </material>
         </collision>
         <inertial>
-            <origin xyz="-2.33246e-08 1.72755e-15 -6.98842e-18" rpy="0 0 0"/>
+            <origin xyz="-2.33246e-08 1.7284e-15 -7.56439e-18" rpy="0 0 0"/>
             <mass value="0.331752" />
-            <inertia ixx="0.00134753" ixy="1.98532e-19" ixz="-2.57402e-24" iyy="0.00134753" iyz="-1.89622e-08" izz="0.00242975" />
+            <inertia ixx="0.00134753" ixy="4.11818e-47" ixz="4.91645e-42" iyy="0.00134753" iyz="-1.89622e-08" izz="0.00242975" />
         </inertial>
     </link>
 
-<link name="world"></link>
     <joint name="rev" type="continuous">
-        <origin xyz="-7.60623e-18 -3.5982e-17 0.2032" rpy="1.5708 -0.868659 3.14159" />
+        <origin xyz="-6.0648e-18 -1.61908e-17 0.2032" rpy="-1.5708 1.5708 0" />
         <parent link="base_link" />
         <child link="wheel" />
         <axis xyz="0 0 1"/>
@@ -61,6 +60,8 @@
         <joint_properties friction="0.0"/>
     </joint>
 
+
+    <link name="world"></link>
 
     <joint name="base_joint" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0" />

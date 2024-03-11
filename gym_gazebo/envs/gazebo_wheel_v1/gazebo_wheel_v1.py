@@ -43,7 +43,6 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.y_threshold = 450 # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
-        self.zeroed = np.pi*((1/4)-(1/32)+(1/128))
         self.n_actions = 1 #should be odd number 
         self.bridge = CvBridge()
         self.record = None
@@ -102,7 +101,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         self.record=record
 
     def get_wheel_pos_callback(self, msg):
-        self.wheel_pos = msg.position[0]%(2*np.pi) - self.zeroed
+        self.wheel_pos = msg.position[0]%(2*np.pi)
         self.wheel_vel = msg.velocity[0]
 
     def get_sim_time(self, data):
@@ -292,7 +291,7 @@ class GazeboWheelv1Env(gazebo_env.GazeboEnv):
         msg = SetModelConfigurationRequest()
         msg.model_name = 'wheel'
         msg.joint_names = ['rev']
-        msg.joint_positions = [float(self.zeroed)]
+        msg.joint_positions = [float(0)]
 
         rospy.wait_for_service('/gazebo/set_model_configuration')
         try:
