@@ -1,13 +1,13 @@
 {
     "configuration": "default",
     "documentId": "8ecf05aba02836bdbd31222a",
-    "documentMicroversion": "d32e267b18d3d5d70c21d68b",
+    "documentMicroversion": "fcb67316fdce347404ad8658",
     "elementId": "e37d6e064c4d3128bb6ebe81",
     "fullConfiguration": "default",
-    "id": "MAiUgvZb+ThbHVxsY",
+    "id": "MuOQRj+B1Oss4Yg0o",
     "isStandardContent": false,
-    "name": "base <1>",
-    "partId": "JID",
+    "name": "wheel <1>",
+    "partId": "JHD",
     "suppressed": false,
     "type": "Part"
 }

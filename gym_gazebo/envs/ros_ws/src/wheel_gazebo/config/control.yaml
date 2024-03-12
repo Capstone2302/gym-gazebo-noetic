@@ -12,7 +12,7 @@ wheel:
 
   # Position Controllers ---------------------------------------
   rev_position_controller:
-    type: effort_controllers/JointEffortController
+    type: effort_controllers/JointPositionController
     joint: rev
     pid: {p: 100.0, i: 0.01, d: 10.0} # effort joint pid
 

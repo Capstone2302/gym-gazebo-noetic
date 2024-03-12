@@ -25,9 +25,9 @@ class CommandToJointState:
 
     def __init__(self):
         self.center_pixel = 399
-        self.Kp = 1
+        self.Kp = 0
         self.Ki = 0
-        self.Kd = 1
+        self.Kd = 0
         self.prev_err = 0
         self.dt = 1
         self.time = 0
@@ -39,7 +39,7 @@ class CommandToJointState:
         self.integral = 0
         self.prev_err=0
         self.joint_name = 'rev'
-        self.user_input_wheel_pos = 0
+        self.wheel_pos_publish = 0
         self.joint_state = JointState()
         self.joint_state.name.append(self.joint_name)
         self.joint_state.position.append(0.0)
@@ -55,7 +55,16 @@ class CommandToJointState:
         self.resetting = False
         # ats.registerCallback(self.my_callback)weel vel published: 0.0
         self.sim_time_sub = rospy.Subscriber("/clock", Clock, self.get_sim_time)
-        # self.update_pos_user_input()
+        self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
+        self.pause = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
+        self.reset_ball_pos()
+        # rospy.wait_for_service('/gazebo/pause_physics')
+        # try:
+        #     self.pause()
+        # except (rospy.ServiceException) as e:
+        #     print ("/gazebo/pause_physics service call failed")
+        # input("paused")
+        # # self.update_loop()
 
     def get_sim_time(self, data):
         self.time = data.clock.secs + data.clock.nsecs/(1e9)
@@ -98,59 +107,39 @@ class CommandToJointState:
         # if not self.resetting:
         #     self.process_img(self.raw_image)
         #     # print("ball_pos_x: ",self.ball_pos_x)
-        if (self.ball_pos_y) < 0.2:
-            self.reset_ball_pos()
-        #     else:
-        #         self.PID_control() 
  
     def get_ball_pos_callback(self, msg):
         self.ball_pos_x = msg.pose[1].position.x
         self.ball_pos_y = msg.pose[1].position.z
-        # print('ball x: ', self.ball_pos_x)
+        if not self.resetting:
+            if (self.ball_pos_y) < 0.06:
+                self.reset_ball_pos()
+            else:
+                self.state_machine_control() 
+                print("wheel pos = ", str(self.wheel_pos))
+                print("ball_pos_x = ", str(self.ball_pos_x))
 
         
-    def PID_control(self):
-        error = self.ball_pos_x
-
-        # Calculate derivative of the error
-        current_time = self.time
-        dt = current_time - self.prev_time
-        # print("dt = ", dt)
-        if dt == 0:
-            # Avoid division by zero
-            derivative = 0
-            # print
-            # ('*** dt = ',str(dt))
-        else:
-            derivative = (error - self.prev_err) / dt
-
-            # Update previous error and time for next iteration
-            self.prev_err = error
-            self.prev_time = current_time
-
-            # Calculate control output with PID terms
-            proportional = self.Kp * error
-            integral = self.Ki * (self.integral + error * dt)
-            # print('integral: ', str(integral))
-            derivative = self.Kd * derivative
-            self.integral = integral  # Update integral term for next iteration
-
-            self.wheel_write = -(proportional + integral + derivative)
-
-            # Publish control output
-
-            self.joint_pub.publish(self.wheel_write)
-            # print('wheel vel published: '+ str(self.wheel_write))
+    def state_machine_control(self):
+        
+        if self.ball_pos_x < 0.11 or self.wheel_pos < 0.42:
+            self.wheel_pos_publish += 0.0002
+        elif self.wheel_eff > np.pi:
+            
+            self.joint_pub.publish(float(-np.pi))
+        self.joint_pub.publish(float(self.wheel_pos_publish))
+        # print("self.user_input_wheel_pos: ", self.user_input_wheel_pos)
+        
 
     def get_wheel_callback(self, msg):
-        self.wheel_pos = msg.position[0]%(2*np.pi)
+        self.wheel_pos = msg.position[0]%(np.pi)
         self.wheel_vel = msg.velocity[0]
+        self.wheel_eff = msg.effort[0]
+        # print("eff: ",self.wheel_eff)
         # self.publish_input_position()
-        # print("wheel pos = ", str(self.wheel_pos))
        
     def reset_wheel(self):    
-        self.joint_pub.publish(0)
-        time.sleep(0.05)
+        self.joint_pub.publish(float(0))
         
         msg = SetModelConfigurationRequest()
         msg.model_name = 'wheel'
@@ -164,8 +153,6 @@ class CommandToJointState:
         except rospy.ServiceException:
             print( "Service call failed")
 
-        time.sleep(1)
-
     def reset_ball_pos(self):    
         self.resetting = True
         self.reset_wheel()
@@ -175,8 +162,7 @@ class CommandToJointState:
         x=0
         state_msg.pose.position.x = x
         state_msg.pose.position.y = 0
-        r = 0.1524
-        state_msg.pose.position.z = 0.375 - (r - np.sqrt(r**2-x**2))
+        state_msg.pose.position.z = 0.41
         state_msg.pose.orientation.x = 0
         state_msg.pose.orientation.y = 0
         state_msg.pose.orientation.z = 0
@@ -190,29 +176,46 @@ class CommandToJointState:
             print( "Service call failed")
         self.integral = 0  
         self.resetting = False
+        self.wheel_pos_publish = 0
 
-    def update_pos_user_input(self):
+    def update_loop(self):
         while True:
-            print("enter position")
-            user_input = input("Position Entered: ")
-            if user_input:
-                self.user_input_wheel_pos = float(user_input)
-                print("self.user_input_wheel_pos: ", self.user_input_wheel_pos)
+            # # Get user input
+            # user_input = (input("Enter Position"))
+            # if user_input:
+            #     self.user_input_wheel_pos = float(user_input)
+            # Unpause simulation to make observations
+            rospy.wait_for_service('/gazebo/unpause_physics')
+            try:
+                self.unpause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/unpause_physics service call failed")
 
-    def publish_input_position(self):
-        # Define some variables
-        msg = SetModelConfigurationRequest()
-        msg.model_name = 'wheel'
-        msg.joint_names = ['rev']
-        # Get user input
+            time.sleep(0.01)
 
-        msg.joint_positions = [float(self.user_input_wheel_pos)]
-        rospy.wait_for_service('/gazebo/set_model_configuration')
-        try:
-            set_state = rospy.ServiceProxy('/gazebo/set_model_configuration', SetModelConfiguration)
-            resp = set_state( msg )
-        except rospy.ServiceException:
-            print( "Service call failed")
+            # Pause
+            rospy.wait_for_service('/gazebo/pause_physics')
+            try:
+                self.pause()
+            except (rospy.ServiceException) as e:
+                print ("/gazebo/pause_physics service call failed")
+            input("paused")
+            
+
+    # def publish_input_position(self):
+    #     # Define some variables
+    #     msg = SetModelConfigurationRequest()
+    #     msg.model_name = 'wheel'
+    #     msg.joint_names = ['rev']
+    #     # Get user input
+
+    #     msg.joint_positions = [float(self.user_input_wheel_pos)]
+    #     rospy.wait_for_service('/gazebo/set_model_configuration')
+    #     try:
+    #         set_state = rospy.ServiceProxy('/gazebo/set_model_configuration', SetModelConfiguration)
+    #         resp = set_state( msg )
+    #     except rospy.ServiceException:
+    #         print( "Service call failed")
 
 
 
